@@ -20,4 +20,4 @@ export const useAuthStore = defineStore('auth', {
       this.isAuthenticated = false
     },
   },
-}) 
+})

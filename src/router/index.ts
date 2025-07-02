@@ -69,10 +69,10 @@ export const router = createRouter({
 
 // Route guard for authentication
 router.beforeEach((to, from, next) => {
-  const { user, loading, authReady } = useAuth()
+  const { user, authReady } = useAuth()
   // Wait for authReady to be true
   if (!authReady.value) {
-    const unwatch = watch(authReady, (val) => {
+    const unwatch = watch(authReady, val => {
       if (val) {
         unwatch()
         proceed()
@@ -84,7 +84,7 @@ router.beforeEach((to, from, next) => {
 
   function proceed() {
     const isAuthenticated = !!user.value
-    const isAdmin = user.value && 'isAdmin' in user.value && (user.value.isAdmin === true)
+    const isAdmin = user.value && 'isAdmin' in user.value && user.value.isAdmin === true
     const isEmailVerified = user.value && user.value.emailVerified
     const publicPages = ['/login', '/register', '/verified', '/verify-email']
 
@@ -96,24 +96,27 @@ router.beforeEach((to, from, next) => {
     // Require email verification for all protected pages
     if (isAuthenticated && !isEmailVerified && !publicPages.includes(to.path)) {
       next('/verify-email')
-    // Redirect authenticated users away from login/register/verified
+      // Redirect authenticated users away from login/register/verified
     } else if (to.path === '/login' || to.path === '/register' || to.path === '/verified') {
       if (isAuthenticated) {
         next('/profile')
       } else {
         next()
       }
-    // Require authentication for all non-public pages
+      // Require authentication for all non-public pages
     } else if (!isAuthenticated && !publicPages.includes(to.path)) {
       next('/login')
-    // Admin-only routes
-    } else if ((to.path === '/admin' || to.path === '/analytics' || to.path === '/user-management') && !isAdmin) {
+      // Admin-only routes
+    } else if (
+      (to.path === '/admin' || to.path === '/analytics' || to.path === '/user-management') &&
+      !isAdmin
+    ) {
       next('/player')
-    // Authenticated-only route for leaderboard
+      // Authenticated-only route for leaderboard
     } else if (to.path === '/leaderboard' && !isAuthenticated) {
       next('/login')
     } else {
       next()
     }
   }
-}) 
+})

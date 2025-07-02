@@ -1,6 +1,15 @@
 import { ref, onUnmounted } from 'vue'
 import { auth } from '../firebase'
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile, User, sendEmailVerification, getIdTokenResult } from 'firebase/auth'
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged,
+  updateProfile,
+  User,
+  sendEmailVerification,
+  getIdTokenResult,
+} from 'firebase/auth'
 import { useAuthStore } from '../store/auth'
 
 export function useAuth() {
@@ -20,13 +29,16 @@ export function useAuth() {
       const isAdmin = !!idTokenResult.claims.isAdmin
       const extendedUser = Object.assign({}, firebaseUserObj, { isAdmin })
       user.value = extendedUser
-      authStore.login({
-        id: firebaseUserObj.uid,
-        uid: firebaseUserObj.uid,
-        name: firebaseUserObj.displayName || firebaseUserObj.email || '',
-        email: firebaseUserObj.email || '',
-        isAdmin
-      }, extendedUser)
+      authStore.login(
+        {
+          id: firebaseUserObj.uid,
+          uid: firebaseUserObj.uid,
+          name: firebaseUserObj.displayName || firebaseUserObj.email || '',
+          email: firebaseUserObj.email || '',
+          isAdmin,
+        },
+        extendedUser
+      )
       console.log('onAuthStateChanged user:', extendedUser)
     } else {
       user.value = null
@@ -49,8 +61,12 @@ export function useAuth() {
         await sendEmailVerification(auth.currentUser)
       }
       return cred.user
-    } catch (e: any) {
-      error.value = e.message
+    } catch (e: unknown) {
+      if (e instanceof Error) {
+        error.value = e.message
+      } else {
+        error.value = String(e)
+      }
       throw e
     }
   }
@@ -64,17 +80,24 @@ export function useAuth() {
       const isAdmin = !!idTokenResult.claims.isAdmin
       const extendedUser = Object.assign({}, cred.user, { isAdmin })
       user.value = extendedUser
-      authStore.login({
-        id: cred.user.uid,
-        uid: cred.user.uid,
-        name: cred.user.displayName || cred.user.email || '',
-        email: cred.user.email || '',
-        isAdmin
-      }, extendedUser)
+      authStore.login(
+        {
+          id: cred.user.uid,
+          uid: cred.user.uid,
+          name: cred.user.displayName || cred.user.email || '',
+          email: cred.user.email || '',
+          isAdmin,
+        },
+        extendedUser
+      )
       console.log('login user:', extendedUser)
       return cred.user
-    } catch (e: any) {
-      error.value = e.message
+    } catch (e: unknown) {
+      if (e instanceof Error) {
+        error.value = e.message
+      } else {
+        error.value = String(e)
+      }
       throw e
     } finally {
       loading.value = false
@@ -95,8 +118,12 @@ export function useAuth() {
       if (auth.currentUser) {
         await sendEmailVerification(auth.currentUser)
       }
-    } catch (e: any) {
-      error.value = e.message
+    } catch (e: unknown) {
+      if (e instanceof Error) {
+        error.value = e.message
+      } else {
+        error.value = String(e)
+      }
       throw e
     }
   }
@@ -110,6 +137,6 @@ export function useAuth() {
     login,
     logout,
     resendVerificationEmail,
-    authReady
+    authReady,
   }
-} 
+}

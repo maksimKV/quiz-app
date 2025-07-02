@@ -3,28 +3,6 @@ import type { Quiz } from '../types/quiz'
 import { quizService } from '../services/quizService'
 import { ref, onUnmounted } from 'vue'
 
-// Mock data for initial quizzes
-const mockQuizzes: Quiz[] = [
-  {
-    id: '1',
-    title: 'Sample Quiz',
-    description: 'A sample quiz for demonstration.',
-    tags: ['sample', 'demo'],
-    published: true,
-    questions: [
-      {
-        id: 'q1',
-        type: 'multiple-choice',
-        content: 'What is 2 + 2?',
-        options: ['3', '4', '5'],
-        correctAnswers: ['4'],
-        explanation: '2 + 2 is 4.',
-      },
-    ],
-    timer: 60,
-  },
-]
-
 export const useQuizStore = defineStore('quiz', () => {
   const quizzes = ref<Quiz[]>([])
   const loading = ref(false)
@@ -33,7 +11,7 @@ export const useQuizStore = defineStore('quiz', () => {
 
   // Subscribe to published quizzes
   function subscribeToQuizzes() {
-    unsubscribeQuizzes = quizService.subscribeToPublishedQuizzes((updatedQuizzes) => {
+    unsubscribeQuizzes = quizService.subscribeToPublishedQuizzes(updatedQuizzes => {
       quizzes.value = updatedQuizzes
     })
   }
@@ -93,6 +71,6 @@ export const useQuizStore = defineStore('quiz', () => {
     error,
     addQuiz,
     updateQuiz,
-    deleteQuiz
+    deleteQuiz,
   }
-}) 
+})

@@ -18,4 +18,4 @@ export interface Quiz {
   published: boolean
   questions: Question[]
   timer?: number // seconds, optional
-} 
+}

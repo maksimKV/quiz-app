@@ -11,4 +11,11 @@ export interface User {
     lastDate: string // ISO date string
     longest?: number
   }
-} 
+}
+
+export interface AdminUser {
+  uid: string
+  email: string
+  displayName?: string
+  isAdmin: boolean
+}

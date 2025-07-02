@@ -2,7 +2,7 @@ import { ref, computed, onBeforeUnmount } from 'vue'
 
 export function useQuizTimer(initialTime: number = 0, onTimeUp?: () => void) {
   const timeLeft = ref(initialTime)
-  let timerInterval: any = null
+  let timerInterval: ReturnType<typeof setInterval> | null = null
 
   const minutes = computed(() => Math.floor(timeLeft.value / 60))
   const seconds = computed(() => timeLeft.value % 60)
@@ -44,6 +44,6 @@ export function useQuizTimer(initialTime: number = 0, onTimeUp?: () => void) {
     isRunning,
     start,
     stop,
-    reset
+    reset,
   }
-} 
+}

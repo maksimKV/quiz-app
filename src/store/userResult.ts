@@ -11,50 +11,50 @@ export const useUserResultStore = defineStore('userResult', {
 
   actions: {
     async fetchAllResults() {
-      this.loading = true;
+      this.loading = true
       try {
-        this.results = await userResultService.getAllResults();
+        this.results = await userResultService.getAllResults()
       } catch (err) {
-        this.error = (err as Error).message;
+        this.error = (err as Error).message
       } finally {
-        this.loading = false;
+        this.loading = false
       }
     },
 
     async addResult(result: Omit<UserResult, 'id'>) {
-      this.loading = true;
+      this.loading = true
       try {
-        const id = await userResultService.addResult(result);
-        this.results.push({ ...result, id });
+        const id = await userResultService.addResult(result)
+        this.results.push({ ...result, id })
       } catch (err) {
-        this.error = (err as Error).message;
+        this.error = (err as Error).message
       } finally {
-        this.loading = false;
+        this.loading = false
       }
     },
 
     async getResultsByUser(userId: string) {
-      this.loading = true;
+      this.loading = true
       try {
-        return await userResultService.getResultsByUser(userId);
+        return await userResultService.getResultsByUser(userId)
       } catch (err) {
-        this.error = (err as Error).message;
-        return [];
+        this.error = (err as Error).message
+        return []
       } finally {
-        this.loading = false;
+        this.loading = false
       }
     },
 
     async getResultsByQuiz(quizId: string) {
-      this.loading = true;
+      this.loading = true
       try {
-        return await userResultService.getResultsByQuiz(quizId);
+        return await userResultService.getResultsByQuiz(quizId)
       } catch (err) {
-        this.error = (err as Error).message;
-        return [];
+        this.error = (err as Error).message
+        return []
       } finally {
-        this.loading = false;
+        this.loading = false
       }
     },
   },
-}) 
+})

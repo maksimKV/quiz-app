@@ -1,53 +1,55 @@
-require('dotenv').config();
-const express = require('express');
-const admin = require('firebase-admin');
-const cors = require('cors');
-const nodemailer = require('nodemailer');
-const helmet = require('helmet');
-const rateLimit = require('express-rate-limit');
-const morgan = require('morgan');
+require('dotenv').config()
+const express = require('express')
+const admin = require('firebase-admin')
+const cors = require('cors')
+const nodemailer = require('nodemailer')
+const helmet = require('helmet')
+const rateLimit = require('express-rate-limit')
+const morgan = require('morgan')
 
-console.log("GOOGLE_CREDENTIALS present:", !!process.env.GOOGLE_CREDENTIALS);
-console.log('SMTP_USER:', process.env.SMTP_USER ? 'set' : 'missing');
-console.log('SMTP_PASS is set:', !!process.env.SMTP_PASS);
+console.log('GOOGLE_CREDENTIALS present:', !!process.env.GOOGLE_CREDENTIALS)
+console.log('SMTP_USER:', process.env.SMTP_USER ? 'set' : 'missing')
+console.log('SMTP_PASS is set:', !!process.env.SMTP_PASS)
 
 // Parse GOOGLE_CREDENTIALS from .env
-const rawCreds = process.env.GOOGLE_CREDENTIALS;
+const rawCreds = process.env.GOOGLE_CREDENTIALS
 if (!rawCreds) {
-  throw new Error('GOOGLE_CREDENTIALS environment variable is not set.');
+  throw new Error('GOOGLE_CREDENTIALS environment variable is not set.')
 }
 
-let serviceAccount;
+let serviceAccount
 try {
-  serviceAccount = JSON.parse(rawCreds);
+  serviceAccount = JSON.parse(rawCreds)
   if (serviceAccount.private_key) {
-    serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
+    serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n')
   }
-  console.log('GOOGLE_CREDENTIALS is valid JSON.');
+  console.log('GOOGLE_CREDENTIALS is valid JSON.')
 } catch (err) {
-  throw new Error('Failed to parse GOOGLE_CREDENTIALS: ' + err.message);
+  throw new Error('Failed to parse GOOGLE_CREDENTIALS: ' + err.message)
 }
 
 // Initialize Firebase Admin SDK
 admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount)
-});
+  credential: admin.credential.cert(serviceAccount),
+})
 
-const app = express();
-app.use(helmet());
-app.use(rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
-  standardHeaders: true,
-  legacyHeaders: false,
-}));
-app.use(cors());
-app.use(morgan('combined'));
-app.use(express.json());
+const app = express()
+app.use(helmet())
+app.use(
+  rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100, // limit each IP to 100 requests per windowMs
+    standardHeaders: true,
+    legacyHeaders: false,
+  })
+)
+app.use(cors())
+app.use(morgan('combined'))
+app.use(express.json())
 
 // Debug logs for SMTP credentials
-console.log('SMTP_USER:', process.env.SMTP_USER ? 'set' : 'missing');
-console.log('SMTP_PASS:', process.env.SMTP_PASS ? 'set' : 'missing');
+console.log('SMTP_USER:', process.env.SMTP_USER ? 'set' : 'missing')
+console.log('SMTP_PASS:', process.env.SMTP_PASS ? 'set' : 'missing')
 
 // Configure nodemailer SMTP transport
 const transporter = nodemailer.createTransport({
@@ -56,57 +58,57 @@ const transporter = nodemailer.createTransport({
   secure: process.env.SMTP_SECURE === 'true', // false for 587, true for 465
   auth: {
     user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS
+    pass: process.env.SMTP_PASS,
   },
   tls: {
-    rejectUnauthorized: false // Allow self-signed certificates (development only)
-  }
-});
+    rejectUnauthorized: false, // Allow self-signed certificates (development only)
+  },
+})
 
 // Middleware to check admin token (to be implemented)
 async function requireAdmin(req, res, next) {
-  const authHeader = req.headers.authorization || '';
-  const match = authHeader.match(/^Bearer (.+)$/);
-  if (!match) return res.status(401).json({ error: 'Missing or invalid Authorization header' });
-  const idToken = match[1];
+  const authHeader = req.headers.authorization || ''
+  const match = authHeader.match(/^Bearer (.+)$/)
+  if (!match) return res.status(401).json({ error: 'Missing or invalid Authorization header' })
+  const idToken = match[1]
   try {
-    const decoded = await admin.auth().verifyIdToken(idToken);
-    if (!decoded.isAdmin) return res.status(403).json({ error: 'Admin privileges required' });
-    req.user = decoded;
-    next();
+    const decoded = await admin.auth().verifyIdToken(idToken)
+    if (!decoded.isAdmin) return res.status(403).json({ error: 'Admin privileges required' })
+    req.user = decoded
+    next()
   } catch (err) {
-    return res.status(401).json({ error: 'Invalid or expired token' });
+    return res.status(401).json({ error: 'Invalid or expired token' })
   }
 }
 
 // List all users
 app.get('/api/users', requireAdmin, async (req, res) => {
-  const users = [];
-  let nextPageToken;
+  const users = []
+  let nextPageToken
   do {
-    const listUsersResult = await admin.auth().listUsers(1000, nextPageToken);
-    listUsersResult.users.forEach((userRecord) => {
+    const listUsersResult = await admin.auth().listUsers(1000, nextPageToken)
+    listUsersResult.users.forEach(userRecord => {
       users.push({
         uid: userRecord.uid,
         email: userRecord.email,
         displayName: userRecord.displayName,
         isAdmin: userRecord.customClaims?.isAdmin || false,
-      });
-    });
-    nextPageToken = listUsersResult.pageToken;
-  } while (nextPageToken);
-  res.json(users);
-});
+      })
+    })
+    nextPageToken = listUsersResult.pageToken
+  } while (nextPageToken)
+  res.json(users)
+})
 
 // Promote user to admin
 app.post('/api/users/promote', requireAdmin, async (req, res) => {
-  const { uid } = req.body;
-  await admin.auth().setCustomUserClaims(uid, { isAdmin: true });
+  const { uid } = req.body
+  await admin.auth().setCustomUserClaims(uid, { isAdmin: true })
   // Send admin confirmation email
   try {
-    const userRecord = await admin.auth().getUser(uid);
+    const userRecord = await admin.auth().getUser(uid)
     if (userRecord.email) {
-      const appUrl = process.env.APP_URL || 'https://your-app-url.com';
+      const appUrl = process.env.APP_URL || 'https://your-app-url.com'
       await transporter.sendMail({
         from: process.env.SMTP_FROM || process.env.SMTP_USER,
         to: userRecord.email,
@@ -125,46 +127,46 @@ app.post('/api/users/promote', requireAdmin, async (req, res) => {
               <p style="font-size: 12px; color: #aaa;">If you did not expect this, please contact support or ignore this email.</p>
             </div>
           </div>
-        `
-      });
+        `,
+      })
     }
   } catch (e) {
     // Log but don't fail the request if email fails
-    console.error('Failed to send admin confirmation email:', e);
+    console.error('Failed to send admin confirmation email:', e)
   }
-  res.json({ success: true });
-});
+  res.json({ success: true })
+})
 
 // Demote user from admin
 app.post('/api/users/demote', requireAdmin, async (req, res) => {
-  const { uid } = req.body;
-  await admin.auth().setCustomUserClaims(uid, { isAdmin: false });
-  res.json({ success: true });
-});
+  const { uid } = req.body
+  await admin.auth().setCustomUserClaims(uid, { isAdmin: false })
+  res.json({ success: true })
+})
 
 // Delete user
 app.delete('/api/users/:uid', requireAdmin, async (req, res) => {
-  await admin.auth().deleteUser(req.params.uid);
-  res.json({ success: true });
-});
+  await admin.auth().deleteUser(req.params.uid)
+  res.json({ success: true })
+})
 
 // Invite user (send password reset link)
 app.post('/api/users/invite', requireAdmin, async (req, res) => {
-  const { email, name, isAdmin } = req.body;
+  const { email, name, isAdmin } = req.body
   try {
-    let userRecord;
+    let userRecord
     try {
-      userRecord = await admin.auth().getUserByEmail(email);
+      userRecord = await admin.auth().getUserByEmail(email)
     } catch (e) {
-      userRecord = await admin.auth().createUser({ email, displayName: name });
+      userRecord = await admin.auth().createUser({ email, displayName: name })
     }
     if (name && userRecord.displayName !== name) {
-      await admin.auth().updateUser(userRecord.uid, { displayName: name });
+      await admin.auth().updateUser(userRecord.uid, { displayName: name })
     }
     if (isAdmin) {
-      await admin.auth().setCustomUserClaims(userRecord.uid, { isAdmin: true });
+      await admin.auth().setCustomUserClaims(userRecord.uid, { isAdmin: true })
     }
-    const link = await admin.auth().generatePasswordResetLink(email);
+    const link = await admin.auth().generatePasswordResetLink(email)
     // Send invite email
     await transporter.sendMail({
       from: process.env.SMTP_FROM || process.env.SMTP_USER,
@@ -184,48 +186,48 @@ app.post('/api/users/invite', requireAdmin, async (req, res) => {
             <p style="font-size: 12px; color: #aaa;">If you did not expect this, you can ignore this email.</p>
           </div>
         </div>
-      `
-    });
-    res.json({ success: true, inviteLink: link });
+      `,
+    })
+    res.json({ success: true, inviteLink: link })
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    res.status(400).json({ error: err.message })
   }
-});
+})
 
 // Self-registration endpoint
 app.post('/api/register', async (req, res) => {
-  const { email, password, name, isAdmin } = req.body;
+  const { email, password, name, isAdmin } = req.body
   try {
-    let userRecord;
+    let userRecord
     try {
-      userRecord = await admin.auth().getUserByEmail(email);
-      return res.status(400).json({ error: 'User already exists.' });
+      userRecord = await admin.auth().getUserByEmail(email)
+      return res.status(400).json({ error: 'User already exists.' })
     } catch (e) {
-      userRecord = await admin.auth().createUser({ email, password, displayName: name });
+      userRecord = await admin.auth().createUser({ email, password, displayName: name })
     }
     if (name && userRecord.displayName !== name) {
-      await admin.auth().updateUser(userRecord.uid, { displayName: name });
+      await admin.auth().updateUser(userRecord.uid, { displayName: name })
     }
     if (isAdmin) {
-      await admin.auth().setCustomUserClaims(userRecord.uid, { isAdmin: true });
+      await admin.auth().setCustomUserClaims(userRecord.uid, { isAdmin: true })
     }
     // Send email verification link
-    const continueUrl = (process.env.APP_URL || 'http://localhost:5173') + '/verified';
-    const link = await admin.auth().generateEmailVerificationLink(email, { url: continueUrl });
+    const continueUrl = (process.env.APP_URL || 'http://localhost:5173') + '/verified'
+    const link = await admin.auth().generateEmailVerificationLink(email, { url: continueUrl })
     await transporter.sendMail({
       from: process.env.SMTP_FROM || process.env.SMTP_USER,
       to: email,
       subject: 'Verify your email for Quiz App',
       text: `Hello${name ? ' ' + name : ''},\n\nThank you for registering for Quiz App. Please verify your email by clicking the link below:\n\n${link}\n\nIf you did not expect this, you can ignore this email.`,
-      html: `<div style="font-family: Arial, sans-serif; background: #f9fafb; padding: 32px;"><div style="max-width: 480px; margin: auto; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px #0001; padding: 32px;"><h2 style="color: #2563eb; margin-bottom: 16px;">Welcome to <span style='color:#9333ea'>Quiz App</span>!</h2><p style="font-size: 16px; color: #222;">Hello${name ? ' ' + name : ''},</p><p style="font-size: 16px; color: #222;">Thank you for registering for <b>Quiz App</b>. Please verify your email by clicking the button below:</p><a href="${link}" style="display:inline-block;padding:12px 24px;background:#2563eb;color:#fff;text-decoration:none;font-weight:bold;font-size:16px;">Verify Email</a><p style="font-size: 14px; color: #666;">If the button doesn't work, copy and paste this link into your browser:</p><p style="font-size: 13px; color: #666; word-break: break-all;">${link}</p><hr style="margin: 24px 0; border: none; border-top: 1px solid #eee;" /><p style="font-size: 12px; color: #aaa;">If you did not expect this, you can ignore this email.</p></div></div>`
-    });
-    res.json({ success: true });
+      html: `<div style="font-family: Arial, sans-serif; background: #f9fafb; padding: 32px;"><div style="max-width: 480px; margin: auto; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px #0001; padding: 32px;"><h2 style="color: #2563eb; margin-bottom: 16px;">Welcome to <span style='color:#9333ea'>Quiz App</span>!</h2><p style="font-size: 16px; color: #222;">Hello${name ? ' ' + name : ''},</p><p style="font-size: 16px; color: #222;">Thank you for registering for <b>Quiz App</b>. Please verify your email by clicking the button below:</p><a href="${link}" style="display:inline-block;padding:12px 24px;background:#2563eb;color:#fff;text-decoration:none;font-weight:bold;font-size:16px;">Verify Email</a><p style="font-size: 14px; color: #666;">If the button doesn't work, copy and paste this link into your browser:</p><p style="font-size: 13px; color: #666; word-break: break-all;">${link}</p><hr style="margin: 24px 0; border: none; border-top: 1px solid #eee;" /><p style="font-size: 12px; color: #aaa;">If you did not expect this, you can ignore this email.</p></div></div>`,
+    })
+    res.json({ success: true })
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    res.status(400).json({ error: err.message })
   }
-});
+})
 
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.PORT || 4000
 app.listen(PORT, () => {
-  console.log(`Admin API listening on port ${PORT}`);
-}); 
+  console.log(`Admin API listening on port ${PORT}`)
+})

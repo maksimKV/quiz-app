@@ -5,7 +5,7 @@ export interface UserResult {
   score: number
   maxScore: number
   percentage: number
-  answers: Record<string, any>
+  answers: Record<string, string | string[]>
   completedAt: string
   timeSpent?: number
-} 
+}

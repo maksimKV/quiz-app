@@ -34,11 +34,20 @@ export function useQuizAnalytics(quizzes: Quiz[], results: UserResult[]) {
     let correct = 0
     quizResults.forEach(r => {
       if (q.type === 'multiple-choice') {
-        if (typeof r.answers[questionId] === 'string' && r.answers[questionId] === q.correctAnswers[0]) correct++
+        if (
+          typeof r.answers[questionId] === 'string' &&
+          r.answers[questionId] === q.correctAnswers[0]
+        )
+          correct++
       } else if (q.type === 'multiple-answer') {
         const userAns = Array.isArray(r.answers[questionId]) ? r.answers[questionId] : []
         const correctSet = new Set(q.correctAnswers)
-        if (userAns.length && userAns.every((a: string) => correctSet.has(a)) && userAns.length === q.correctAnswers.length) correct++
+        if (
+          userAns.length &&
+          userAns.every((a: string) => correctSet.has(a)) &&
+          userAns.length === q.correctAnswers.length
+        )
+          correct++
       } else if (q.type === 'short-text') {
         const ans = typeof r.answers[questionId] === 'string' ? r.answers[questionId] : ''
         if (ans.trim().toLowerCase() === (q.correctAnswers[0] || '').trim().toLowerCase()) correct++
@@ -55,11 +64,20 @@ export function useQuizAnalytics(quizzes: Quiz[], results: UserResult[]) {
     const quizResults = results.filter(r => r.quizId === quizId)
     if (!quizResults.length) return ''
     const missCounts: Record<string, number> = {}
-    const options: string[] = question.options;
-    options.forEach((opt: string) => { missCounts[opt] = 0; })
+    const options: string[] = question.options
+    options.forEach((opt: string) => {
+      missCounts[opt] = 0
+    })
     quizResults.forEach(r => {
       if (question.type === 'multiple-choice' || question.type === 'multiple-answer') {
-        const userAns = question.type === 'multiple-answer' ? (Array.isArray(r.answers[questionId]) ? r.answers[questionId] : []) : (typeof r.answers[questionId] === 'string' ? [r.answers[questionId]] : [])
+        const userAns =
+          question.type === 'multiple-answer'
+            ? Array.isArray(r.answers[questionId])
+              ? r.answers[questionId]
+              : []
+            : typeof r.answers[questionId] === 'string'
+              ? [r.answers[questionId]]
+              : []
         options.forEach((opt: string) => {
           if (!userAns.includes(opt) && question.correctAnswers.includes(opt)) missCounts[opt]++
         })
@@ -86,6 +104,6 @@ export function useQuizAnalytics(quizzes: Quiz[], results: UserResult[]) {
     avgTime,
     questionCorrectPct,
     mostMissedOption,
-    leaderboard
+    leaderboard,
   }
-} 
+}
