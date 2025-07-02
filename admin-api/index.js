@@ -2,6 +2,8 @@ const express = require('express');
 const admin = require('firebase-admin');
 const cors = require('cors');
 const nodemailer = require('nodemailer');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 
 // Initialize Firebase Admin SDK
 admin.initializeApp({
@@ -9,6 +11,13 @@ admin.initializeApp({
 });
 
 const app = express();
+app.use(helmet());
+app.use(rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+  standardHeaders: true,
+  legacyHeaders: false,
+}));
 app.use(cors());
 app.use(express.json());
 
