@@ -1,5 +1,15 @@
 <template>
   <div class="max-w-3xl mx-auto p-8">
+    <div v-if="globalLoading" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
+      <div class="bg-white dark:bg-gray-800 p-6 rounded shadow flex items-center gap-2">
+        <svg class="animate-spin h-6 w-6 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg>
+        <span>Loading...</span>
+      </div>
+    </div>
+    <div v-if="globalError" class="mb-4 p-3 bg-red-100 text-red-700 rounded shadow flex items-center justify-between">
+      <span>{{ globalError }}</span>
+      <button class="ml-4 px-2 py-1 bg-red-300 rounded" @click="globalError = ''">Dismiss</button>
+    </div>
     <h1 class="text-2xl font-bold mb-6">Admin Panel</h1>
     <div class="flex gap-2 mb-4">
       <button class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700" @click="exportQuizzes">Export Quizzes</button>
@@ -94,6 +104,8 @@ const users = ref([])
 const userMgmtLoading = ref(false)
 const userMgmtError = ref('')
 const isAdmin = computed(() => firebaseAuthUser.value && firebaseAuthUser.value.isAdmin)
+const globalError = ref('')
+const globalLoading = ref(false)
 
 function onCreate() {
   editingQuiz.value = null
@@ -333,6 +345,8 @@ function userInfo(userId: string) {
 async function inviteUser() {
   inviteError.value = ''
   inviteLink.value = ''
+  globalError.value = ''
+  globalLoading.value = true
   try {
     const token = firebaseUser.value ? await firebaseUser.value.getIdToken() : ''
     const res = await fetch('/api/users/invite', {
@@ -347,12 +361,17 @@ async function inviteUser() {
     inviteName.value = ''
   } catch (e: any) {
     inviteError.value = e.message || 'Failed to invite user.'
+    globalError.value = inviteError.value
+  } finally {
+    globalLoading.value = false
   }
 }
 
 async function fetchUsers() {
   userMgmtLoading.value = true
   userMgmtError.value = ''
+  globalError.value = ''
+  globalLoading.value = true
   try {
     const token = firebaseUser.value ? await firebaseUser.value.getIdToken() : ''
     const res = await fetch('/api/users', {
@@ -362,23 +381,17 @@ async function fetchUsers() {
     users.value = await res.json()
   } catch (e: any) {
     userMgmtError.value = e.message || 'Failed to fetch users.'
+    globalError.value = userMgmtError.value
   } finally {
     userMgmtLoading.value = false
+    globalLoading.value = false
   }
 }
 
-async function promote(u) {
-  await userMgmtAction('/api/users/promote', { uid: u.uid })
-}
-async function demote(u) {
-  await userMgmtAction('/api/users/demote', { uid: u.uid })
-}
-async function deleteUser(u) {
-  if (!confirm(`Delete user ${u.displayName || u.email}?`)) return
-  await userMgmtAction(`/api/users/${u.uid}`, null, 'DELETE')
-}
 async function userMgmtAction(url, body, method = 'POST') {
   userMgmtError.value = ''
+  globalError.value = ''
+  globalLoading.value = true
   try {
     const token = firebaseUser.value ? await firebaseUser.value.getIdToken() : ''
     const res = await fetch(url, {
@@ -390,8 +403,15 @@ async function userMgmtAction(url, body, method = 'POST') {
     await fetchUsers()
   } catch (e: any) {
     userMgmtError.value = e.message || 'Action failed.'
+    globalError.value = userMgmtError.value
+  } finally {
+    globalLoading.value = false
   }
 }
+
+async function promote(u) { await userMgmtAction('/api/users/promote', { uid: u.uid }) }
+async function demote(u) { await userMgmtAction('/api/users/demote', { uid: u.uid }) }
+async function deleteUser(u) { if (!confirm(`Delete user ${u.displayName || u.email}?`)) return; await userMgmtAction(`/api/users/${u.uid}`, null, 'DELETE') }
 
 onMounted(() => {
   if (showUserMgmt.value) fetchUsers()
