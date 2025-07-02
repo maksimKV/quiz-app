@@ -1,7 +1,14 @@
 <template>
   <div>
     <h2 class="text-xl font-semibold mb-4">Available Quizzes</h2>
-    <div v-if="quizzes.length === 0" class="text-gray-500">No published quizzes available.</div>
+    <div v-if="loading" class="text-center py-4">
+      <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
+      <p class="mt-2 text-gray-500">Loading quizzes...</p>
+    </div>
+    <div v-else-if="error" class="text-red-500 p-4 text-center">
+      {{ error }}
+    </div>
+    <div v-else-if="quizzes.length === 0" class="text-gray-500">No published quizzes available.</div>
     <ul v-else class="space-y-2">
       <li v-for="quiz in quizzes" :key="quiz.id" class="flex items-center justify-between bg-white dark:bg-gray-800 rounded shadow p-4">
         <div>
@@ -20,7 +27,12 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
 import { useQuizStore } from '../store/quiz'
+import { onMounted } from 'vue'
 
 const quizStore = useQuizStore()
-const { quizzes } = storeToRefs(quizStore)
+const { quizzes, loading, error } = storeToRefs(quizStore)
+
+onMounted(async () => {
+  await quizStore.fetchPublishedQuizzes()
+})
 </script> 

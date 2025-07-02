@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import type { Quiz } from '../types/quiz'
+import { quizService } from '../services/quizService'
 
 // Mock data for initial quizzes
 const mockQuizzes: Quiz[] = [
@@ -25,18 +26,69 @@ const mockQuizzes: Quiz[] = [
 
 export const useQuizStore = defineStore('quiz', {
   state: () => ({
-    quizzes: mockQuizzes as Quiz[],
+    quizzes: [] as Quiz[],
+    loading: false,
+    error: null as string | null,
   }),
+
   actions: {
-    addQuiz(quiz: Quiz) {
-      this.quizzes.push(quiz)
+    async fetchQuizzes() {
+      this.loading = true;
+      try {
+        this.quizzes = await quizService.getAllQuizzes();
+      } catch (err) {
+        this.error = (err as Error).message;
+      } finally {
+        this.loading = false;
+      }
     },
-    updateQuiz(updated: Quiz) {
-      const idx = this.quizzes.findIndex(q => q.id === updated.id)
-      if (idx !== -1) this.quizzes[idx] = updated
+
+    async fetchPublishedQuizzes() {
+      this.loading = true;
+      try {
+        this.quizzes = await quizService.getPublishedQuizzes();
+      } catch (err) {
+        this.error = (err as Error).message;
+      } finally {
+        this.loading = false;
+      }
     },
-    deleteQuiz(id: string) {
-      this.quizzes = this.quizzes.filter(q => q.id !== id)
+
+    async addQuiz(quiz: Omit<Quiz, 'id'>) {
+      this.loading = true;
+      try {
+        const id = await quizService.createQuiz(quiz);
+        this.quizzes.push({ ...quiz, id });
+      } catch (err) {
+        this.error = (err as Error).message;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async updateQuiz(updated: Quiz) {
+      this.loading = true;
+      try {
+        await quizService.updateQuiz(updated.id, updated);
+        const idx = this.quizzes.findIndex(q => q.id === updated.id);
+        if (idx !== -1) this.quizzes[idx] = updated;
+      } catch (err) {
+        this.error = (err as Error).message;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async deleteQuiz(id: string) {
+      this.loading = true;
+      try {
+        await quizService.deleteQuiz(id);
+        this.quizzes = this.quizzes.filter(q => q.id !== id);
+      } catch (err) {
+        this.error = (err as Error).message;
+      } finally {
+        this.loading = false;
+      }
     },
   },
 }) 

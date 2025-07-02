@@ -22,9 +22,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useAuth } from '../composables/useAuth'
 import { updateProfile, updatePassword } from 'firebase/auth'
+import { db } from '../firebase'
+import { doc, getDoc, setDoc } from 'firebase/firestore'
 
 const { user } = useAuth()
 const name = ref(user.value?.displayName || '')
@@ -32,12 +34,30 @@ const password = ref('')
 const error = ref('')
 const success = ref(false)
 
+onMounted(async () => {
+  if (user.value) {
+    try {
+      const docRef = doc(db, 'users', user.value.uid)
+      const snap = await getDoc(docRef)
+      if (snap.exists()) {
+        const data = snap.data()
+        if (data && data.name) name.value = data.name
+      }
+    } catch (e: any) {
+      error.value = 'Failed to load profile from database.'
+    }
+  }
+})
+
 async function save() {
   error.value = ''
   success.value = false
   try {
     if (user.value && name.value && name.value !== user.value.displayName) {
       await updateProfile(user.value, { displayName: name.value })
+      // Save to Firestore
+      const docRef = doc(db, 'users', user.value.uid)
+      await setDoc(docRef, { name: name.value, email: user.value.email, isAdmin: !!(user.value as any).isAdmin }, { merge: true })
     }
     if (user.value && password.value) {
       await updatePassword(user.value, password.value)

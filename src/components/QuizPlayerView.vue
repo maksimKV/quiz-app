@@ -89,13 +89,20 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import type { Quiz, Question } from '../types/quiz'
+import { useUserResultStore } from '../store/userResult'
+import { useAuthStore } from '../store/auth'
 
 const props = defineProps<{ quiz: Quiz, reviewAnswers?: Record<string, any>, forceReview?: boolean }>()
 const emit = defineEmits(['submit'])
 
+const userResultStore = useUserResultStore()
+const authStore = useAuthStore()
+
 const currentIndex = ref(0)
 const showReview = ref(false)
 const showConfirm = ref(false)
+const saving = ref(false)
+const error = ref<string | null>(null)
 
 // Use review mode if forceReview is true
 if (props.forceReview) showReview.value = true
@@ -157,7 +164,7 @@ const progress = computed(() => ((currentIndex.value + 1) / props.quiz.questions
 const allAnswered = computed(() => props.quiz.questions.every(q => answers.value[q.id] !== undefined && answers.value[q.id] !== '' && (!Array.isArray(answers.value[q.id]) || answers.value[q.id].length > 0)))
 
 // Per-question scoring
-const perQuestionScores = computed(() => props.quiz.questions.map((q, idx) => {
+const perQuestionScores = computed<number[]>(() => props.quiz.questions.map((q, idx) => {
   if (q.type === 'multiple-choice') {
     return answers.value[q.id] === q.correctAnswers[0] ? 1 : 0
   } else if (q.type === 'multiple-answer') {
@@ -172,7 +179,7 @@ const perQuestionScores = computed(() => props.quiz.questions.map((q, idx) => {
       partial = (numCorrectSelected / totalCorrect) - (numIncorrectSelected / totalOptions)
       if (partial < 0) partial = 0
     }
-    return Number.isInteger(partial) ? partial : partial.toFixed(2)
+    return Number(partial.toFixed(2))
   } else if (q.type === 'short-text') {
     return ((answers.value[q.id] || '').trim().toLowerCase() === (q.correctAnswers[0] || '').trim().toLowerCase()) ? 1 : 0
   }
@@ -217,10 +224,36 @@ function confirmSubmit() {
     submit()
   }
 }
-function submit() {
+async function submit() {
   showReview.value = true
   showConfirm.value = false
   if (timerInterval) clearInterval(timerInterval)
+
+  if (!props.forceReview) {
+    saving.value = true
+    error.value = null
+    try {
+      const totalScore = perQuestionScores.value.reduce((acc, score) => acc + score, 0)
+      const maxScore = props.quiz.questions.length
+      const percentage = Math.round((totalScore / maxScore) * 100)
+
+      await userResultStore.addResult({
+        quizId: props.quiz.id,
+        userId: authStore.user?.uid || authStore.user?.id || '',
+        answers: answers.value,
+        score: totalScore,
+        maxScore,
+        percentage,
+        completedAt: new Date().toISOString(),
+        timeSpent: props.quiz.timer ? props.quiz.timer - timeLeft.value : undefined
+      })
+    } catch (err) {
+      error.value = (err as Error).message
+      console.error('Failed to save quiz results:', err)
+    } finally {
+      saving.value = false
+    }
+  }
 }
 function restart() {
   currentIndex.value = 0

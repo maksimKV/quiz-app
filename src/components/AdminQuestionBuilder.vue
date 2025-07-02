@@ -6,7 +6,7 @@
       <li v-for="(q, idx) in questions" :key="q.id" class="bg-gray-50 dark:bg-gray-900 p-4 rounded shadow">
         <div class="flex justify-between items-center mb-2">
           <span class="font-bold">Q{{ idx + 1 }}: {{ q.content }}</span>
-          <button class="text-red-500 hover:underline" @click="removeQuestion(q.id)">Remove</button>
+          <button class="text-red-500 hover:underline" @click="removeQuestion(q.id)" :disabled="disabled">Remove</button>
         </div>
         <div class="text-xs text-gray-500 mb-1">Type: {{ q.type }}</div>
         <div v-if="q.type !== 'short-text'">
@@ -19,7 +19,7 @@
     <form @submit.prevent="addQuestion" class="space-y-2 bg-gray-100 dark:bg-gray-800 p-4 rounded">
       <div>
         <label class="block font-semibold mb-1">Type</label>
-        <select v-model="newQ.type" class="input" required>
+        <select v-model="newQ.type" class="input" required :disabled="disabled">
           <option value="multiple-choice">Multiple Choice</option>
           <option value="multiple-answer">Multiple Answer</option>
           <option value="short-text">Short Text</option>
@@ -27,26 +27,26 @@
       </div>
       <div>
         <label class="block font-semibold mb-1">Question</label>
-        <input v-model="newQ.content" type="text" class="input" :class="{'border-red-500': newErrors.content || newErrors.duplicate}" required />
+        <input v-model="newQ.content" type="text" class="input" :class="{'border-red-500': newErrors.content || newErrors.duplicate}" required :disabled="disabled" />
         <div v-if="newErrors.content" class="text-red-500 text-xs mt-1">Question content is required.</div>
         <div v-if="newErrors.duplicate" class="text-red-500 text-xs mt-1">Duplicate question content is not allowed.</div>
       </div>
       <div v-if="newQ.type !== 'short-text'">
         <label class="block font-semibold mb-1">Options (comma separated)</label>
-        <input v-model="optionsInput" type="text" class="input" :class="{'border-red-500': newErrors.options}" />
+        <input v-model="optionsInput" type="text" class="input" :class="{'border-red-500': newErrors.options}" :disabled="disabled" />
         <div v-if="newErrors.options" class="text-red-500 text-xs mt-1">At least two unique options are required.</div>
       </div>
       <div>
         <label class="block font-semibold mb-1">Correct Answer(s) (comma separated)</label>
-        <input v-model="answersInput" type="text" class="input" :class="{'border-red-500': newErrors.correctAnswers}" />
+        <input v-model="answersInput" type="text" class="input" :class="{'border-red-500': newErrors.correctAnswers}" :disabled="disabled" />
         <div v-if="newErrors.correctAnswers" class="text-red-500 text-xs mt-1">At least one correct answer is required.</div>
       </div>
       <div>
         <label class="block font-semibold mb-1">Explanation (optional)</label>
-        <input v-model="newQ.explanation" type="text" class="input" :class="{'border-red-500': newErrors.explanation}" />
+        <input v-model="newQ.explanation" type="text" class="input" :class="{'border-red-500': newErrors.explanation}" :disabled="disabled" />
         <div v-if="newErrors.explanation" class="text-red-500 text-xs mt-1">Explanation is required if there are incorrect options.</div>
       </div>
-      <button type="submit" class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700" :disabled="!canAdd">Add Question</button>
+      <button type="submit" class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed" :disabled="!canAdd || disabled">Add Question</button>
     </form>
   </div>
 </template>
@@ -57,6 +57,7 @@ import type { Question, QuestionType } from '../types/quiz'
 
 const props = defineProps<{
   modelValue: Question[]
+  disabled?: boolean
 }>()
 const emit = defineEmits(['update:modelValue'])
 
@@ -67,6 +68,7 @@ watch(() => props.modelValue, (val) => {
 })
 
 function removeQuestion(id: string) {
+  if (props.disabled) return
   questions.value = questions.value.filter(q => q.id !== id)
   emit('update:modelValue', questions.value)
 }
@@ -130,7 +132,7 @@ function validateNew() {
 }
 
 function addQuestion() {
-  if (!validateNew()) return
+  if (props.disabled || !validateNew()) return
   const id = Date.now().toString() + Math.random().toString(36).slice(2)
   const options = newQ.value.type !== 'short-text' ? optionsInput.value.split(',').map(o => o.trim()).filter(Boolean) : []
   const correctAnswers = answersInput.value.split(',').map(a => a.trim()).filter(Boolean)
@@ -169,6 +171,6 @@ watch(questions, (val) => {
 
 <style scoped>
 .input {
-  @apply w-full px-3 py-2 border rounded bg-gray-50 dark:bg-gray-900 dark:border-gray-700;
+  @apply w-full px-3 py-2 border rounded bg-gray-50 dark:bg-gray-900 dark:border-gray-700 disabled:opacity-50 disabled:cursor-not-allowed;
 }
 </style> 

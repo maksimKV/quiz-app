@@ -3,7 +3,9 @@ export interface UserResult {
   userId: string
   quizId: string
   score: number
-  answers: Record<string, string[]>
-  startedAt: string
-  finishedAt: string
+  maxScore: number
+  percentage: number
+  answers: Record<string, any>
+  completedAt: string
+  timeSpent?: number
 } 

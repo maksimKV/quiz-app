@@ -7,6 +7,7 @@ export interface Question {
   options?: string[]
   correctAnswers: string[]
   explanation?: string
+  _error?: string
 }
 
 export interface Quiz {
