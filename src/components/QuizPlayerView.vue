@@ -90,13 +90,25 @@
 import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import type { Quiz, Question } from '../types/quiz'
 
-const props = defineProps<{ quiz: Quiz }>()
+const props = defineProps<{ quiz: Quiz, reviewAnswers?: Record<string, any>, forceReview?: boolean }>()
 const emit = defineEmits(['submit'])
 
 const currentIndex = ref(0)
-const answers = ref<Record<string, any>>({})
 const showReview = ref(false)
 const showConfirm = ref(false)
+
+// Use review mode if forceReview is true
+if (props.forceReview) showReview.value = true
+
+const answers = computed({
+  get() {
+    return props.forceReview && props.reviewAnswers ? props.reviewAnswers : _answers.value
+  },
+  set(val) {
+    if (!props.forceReview) _answers.value = val
+  }
+})
+const _answers = ref<Record<string, any>>({})
 
 // Timer
 const timerEnabled = computed(() => !!props.quiz.timer)

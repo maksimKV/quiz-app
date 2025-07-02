@@ -1,5 +1,6 @@
 <template>
   <div class="max-w-3xl mx-auto p-8">
+    <UserResults v-if="user" :user-id="user.id" />
     <QuizList v-if="!selectedQuiz && !showResults" @start="startQuiz" />
     <QuizPlayerView v-else-if="selectedQuiz && !showResults" :quiz="selectedQuiz" @submit="onSubmit" />
     <div v-else class="bg-white dark:bg-gray-800 p-6 rounded shadow">
@@ -12,9 +13,17 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { storeToRefs } from 'pinia'
 import QuizList from '../components/QuizList.vue'
 import QuizPlayerView from '../components/QuizPlayerView.vue'
+import UserResults from '../components/UserResults.vue'
+import { useAuthStore } from '../store/auth'
+import { useUserResultStore } from '../store/userResult'
 import type { Quiz } from '../types/quiz'
+
+const authStore = useAuthStore()
+const { user } = storeToRefs(authStore)
+const userResultStore = useUserResultStore()
 
 const selectedQuiz = ref<Quiz | null>(null)
 const showResults = ref(false)
@@ -54,6 +63,18 @@ function onSubmit(answers: Record<string, any>) {
       if ((answers[q.id] || '').trim().toLowerCase() === (q.correctAnswers[0] || '').trim().toLowerCase()) score.value++
     }
   })
+  // Save result to userResult store
+  if (user.value && selectedQuiz.value) {
+    userResultStore.addResult({
+      id: Date.now().toString(),
+      userId: user.value.id,
+      quizId: selectedQuiz.value.id,
+      score: score.value,
+      answers,
+      startedAt: new Date().toISOString(),
+      finishedAt: new Date().toISOString(),
+    })
+  }
   showResults.value = true
 }
 
