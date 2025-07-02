@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import type { Quiz } from '../types/quiz'
 import { quizService } from '../services/quizService'
+import { ref, onUnmounted } from 'vue'
 
 // Mock data for initial quizzes
 const mockQuizzes: Quiz[] = [
@@ -24,71 +25,74 @@ const mockQuizzes: Quiz[] = [
   },
 ]
 
-export const useQuizStore = defineStore('quiz', {
-  state: () => ({
-    quizzes: [] as Quiz[],
-    loading: false,
-    error: null as string | null,
-  }),
+export const useQuizStore = defineStore('quiz', () => {
+  const quizzes = ref<Quiz[]>([])
+  const loading = ref(false)
+  const error = ref<string | null>(null)
+  let unsubscribeQuizzes: (() => void) | null = null
 
-  actions: {
-    async fetchQuizzes() {
-      this.loading = true;
-      try {
-        this.quizzes = await quizService.getAllQuizzes();
-      } catch (err) {
-        this.error = (err as Error).message;
-      } finally {
-        this.loading = false;
-      }
-    },
+  // Subscribe to published quizzes
+  function subscribeToQuizzes() {
+    unsubscribeQuizzes = quizService.subscribeToPublishedQuizzes((updatedQuizzes) => {
+      quizzes.value = updatedQuizzes
+    })
+  }
 
-    async fetchPublishedQuizzes() {
-      this.loading = true;
-      try {
-        this.quizzes = await quizService.getPublishedQuizzes();
-      } catch (err) {
-        this.error = (err as Error).message;
-      } finally {
-        this.loading = false;
-      }
-    },
+  // Cleanup subscription
+  onUnmounted(() => {
+    if (unsubscribeQuizzes) {
+      unsubscribeQuizzes()
+    }
+  })
 
-    async addQuiz(quiz: Omit<Quiz, 'id'>) {
-      this.loading = true;
-      try {
-        const id = await quizService.createQuiz(quiz);
-        this.quizzes.push({ ...quiz, id });
-      } catch (err) {
-        this.error = (err as Error).message;
-      } finally {
-        this.loading = false;
-      }
-    },
+  async function addQuiz(quiz: Omit<Quiz, 'id'>) {
+    loading.value = true
+    error.value = null
+    try {
+      await quizService.createQuiz(quiz)
+      // No need to manually update quizzes array - Firebase listener will handle it
+    } catch (err) {
+      error.value = (err as Error).message
+    } finally {
+      loading.value = false
+    }
+  }
 
-    async updateQuiz(updated: Quiz) {
-      this.loading = true;
-      try {
-        await quizService.updateQuiz(updated.id, updated);
-        const idx = this.quizzes.findIndex(q => q.id === updated.id);
-        if (idx !== -1) this.quizzes[idx] = updated;
-      } catch (err) {
-        this.error = (err as Error).message;
-      } finally {
-        this.loading = false;
-      }
-    },
+  async function updateQuiz(quiz: Quiz) {
+    loading.value = true
+    error.value = null
+    try {
+      await quizService.updateQuiz(quiz.id, quiz)
+      // No need to manually update quizzes array - Firebase listener will handle it
+    } catch (err) {
+      error.value = (err as Error).message
+    } finally {
+      loading.value = false
+    }
+  }
 
-    async deleteQuiz(id: string) {
-      this.loading = true;
-      try {
-        await quizService.deleteQuiz(id);
-        this.quizzes = this.quizzes.filter(q => q.id !== id);
-      } catch (err) {
-        this.error = (err as Error).message;
-      } finally {
-        this.loading = false;
-      }
-    },
-  },
+  async function deleteQuiz(id: string) {
+    loading.value = true
+    error.value = null
+    try {
+      await quizService.deleteQuiz(id)
+      // No need to manually update quizzes array - Firebase listener will handle it
+    } catch (err) {
+      error.value = (err as Error).message
+    } finally {
+      loading.value = false
+    }
+  }
+
+  // Initialize subscription
+  subscribeToQuizzes()
+
+  return {
+    quizzes,
+    loading,
+    error,
+    addQuiz,
+    updateQuiz,
+    deleteQuiz
+  }
 }) 

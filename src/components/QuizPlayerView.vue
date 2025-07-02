@@ -1,14 +1,14 @@
 <template>
-  <div v-if="quiz" class="max-w-2xl mx-auto">
-    <h2 class="text-xl font-bold mb-4">{{ quiz.title }}</h2>
-    <div class="mb-2 text-gray-500">{{ quiz.description }}</div>
+  <div v-if="currentQuiz" class="max-w-2xl mx-auto">
+    <h2 class="text-xl font-bold mb-4">{{ currentQuiz.title }}</h2>
+    <div class="mb-2 text-gray-500">{{ currentQuiz.description }}</div>
     <div class="mb-4 text-xs">
-      <span v-for="tag in quiz.tags" :key="tag" class="inline-block bg-blue-100 text-blue-800 rounded px-2 py-0.5 mr-1">{{ tag }}</span>
+      <span v-for="tag in currentQuiz.tags" :key="tag" class="inline-block bg-blue-100 text-blue-800 rounded px-2 py-0.5 mr-1">{{ tag }}</span>
     </div>
     <transition name="fade-slide" mode="out-in">
       <div v-if="!showReview" :key="currentIndex" class="quiz-question">
         <div class="flex items-center justify-between mb-2">
-          <div class="font-semibold">Question {{ currentIndex + 1 }} of {{ quiz.questions.length }}</div>
+          <div class="font-semibold">Question {{ currentIndex + 1 }} of {{ currentQuiz.questions.length }}</div>
           <div v-if="timerEnabled" class="text-sm font-mono">
             ⏰ {{ minutes }}:{{ seconds < 10 ? '0' + seconds : seconds }}
           </div>
@@ -38,7 +38,7 @@
         </div>
         <div class="flex flex-wrap gap-2 mt-6">
           <button v-if="currentIndex > 0" @click="prev" class="px-4 py-2 bg-gray-300 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded hover:bg-gray-400 dark:hover:bg-gray-600" :tabindex="0">Previous</button>
-          <button v-if="currentIndex < quiz.questions.length - 1" @click="next" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700" :tabindex="0">Next</button>
+          <button v-if="currentIndex < currentQuiz.questions.length - 1" @click="next" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700" :tabindex="0">Next</button>
           <button v-else @click="confirmSubmit" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700" :disabled="!allAnswered" :tabindex="0">Submit</button>
         </div>
         <div v-if="showConfirm" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
@@ -55,7 +55,7 @@
       <div v-else class="mt-8">
         <h3 class="text-lg font-bold mb-4">Review Answers</h3>
         <ul class="space-y-4">
-          <li v-for="(q, idx) in quiz.questions" :key="q.id" class="bg-gray-50 dark:bg-gray-900 p-4 rounded shadow">
+          <li v-for="(q, idx) in currentQuiz.questions" :key="q.id" class="bg-gray-50 dark:bg-gray-900 p-4 rounded shadow">
             <div class="flex justify-between items-center mb-1">
               <div class="font-semibold">Q{{ idx + 1 }}: {{ q.content }}</div>
               <div class="text-xs font-mono" :class="scoreClass(perQuestionScores[idx], q)">
@@ -70,8 +70,8 @@
               </div>
             </div>
             <div v-else class="ml-4 text-sm">
-              <span :class="shortTextClass(q, idx)">{{ answers[q.id] }}</span>
-              <span v-if="isShortTextCorrect(q, idx)"> (Correct)</span>
+              <span :class="shortTextClass(q)">{{ answers[q.id] }}</span>
+              <span v-if="isShortTextCorrect(q)"> (Correct)</span>
             </div>
             <div v-if="q.explanation" class="ml-4 text-xs text-green-700 mt-2">Explanation: {{ q.explanation }}</div>
             <div v-if="partialExplanations[idx]" class="ml-4 text-xs text-yellow-700 mt-2">{{ partialExplanations[idx] }}</div>
@@ -91,12 +91,20 @@ import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import type { Quiz, Question } from '../types/quiz'
 import { useUserResultStore } from '../store/userResult'
 import { useAuthStore } from '../store/auth'
+import { quizService } from '../services/quizService'
+import { useQuizTimer } from '../composables/useQuizTimer'
+import { useQuizScoring } from '../composables/useQuizScoring'
 
 const props = defineProps<{ quiz: Quiz, reviewAnswers?: Record<string, any>, forceReview?: boolean }>()
 const emit = defineEmits(['submit'])
 
 const userResultStore = useUserResultStore()
 const authStore = useAuthStore()
+const { calculateQuestionScore, getPartialExplanation, getScoreClass, getOptionClass } = useQuizScoring()
+
+// Add real-time quiz subscription
+let unsubscribeQuiz: (() => void) | null = null
+const currentQuiz = ref<Quiz>(props.quiz)
 
 const currentIndex = ref(0)
 const showReview = ref(false)
@@ -119,26 +127,26 @@ const _answers = ref<Record<string, any>>({})
 
 // Timer
 const timerEnabled = computed(() => !!props.quiz.timer)
-const timeLeft = ref(props.quiz.timer || 0)
-let timerInterval: any = null
-const minutes = computed(() => Math.floor(timeLeft.value / 60))
-const seconds = computed(() => timeLeft.value % 60)
+const { timeLeft, minutes, seconds, start: startTimer, stop: stopTimer, reset: resetTimer } = useQuizTimer(props.quiz.timer || 0, () => {
+  if (!showReview.value) submit()
+})
 
 onMounted(() => {
+  // Subscribe to real-time quiz updates
+  unsubscribeQuiz = quizService.subscribeToQuiz(props.quiz.id, (updatedQuiz) => {
+    if (updatedQuiz) {
+      currentQuiz.value = updatedQuiz
+    }
+  })
+
   if (timerEnabled.value) {
-    timeLeft.value = props.quiz.timer || 0
-    timerInterval = setInterval(() => {
-      if (timeLeft.value > 0) {
-        timeLeft.value--
-      } else {
-        clearInterval(timerInterval)
-        if (!showReview.value) submit()
-      }
-    }, 1000)
+    startTimer()
   }
 })
+
 onBeforeUnmount(() => {
-  if (timerInterval) clearInterval(timerInterval)
+  stopTimer()
+  if (unsubscribeQuiz) unsubscribeQuiz()
 })
 
 watch(() => props.quiz, () => {
@@ -146,61 +154,24 @@ watch(() => props.quiz, () => {
   answers.value = {}
   showReview.value = false
   if (timerEnabled.value) {
-    timeLeft.value = props.quiz.timer || 0
-    if (timerInterval) clearInterval(timerInterval)
-    timerInterval = setInterval(() => {
-      if (timeLeft.value > 0) {
-        timeLeft.value--
-      } else {
-        clearInterval(timerInterval)
-        if (!showReview.value) submit()
-      }
-    }, 1000)
+    resetTimer()
+    startTimer()
   }
 })
 
-const currentQuestion = computed(() => props.quiz.questions[currentIndex.value])
-const progress = computed(() => ((currentIndex.value + 1) / props.quiz.questions.length) * 100)
-const allAnswered = computed(() => props.quiz.questions.every(q => answers.value[q.id] !== undefined && answers.value[q.id] !== '' && (!Array.isArray(answers.value[q.id]) || answers.value[q.id].length > 0)))
+const currentQuestion = computed(() => currentQuiz.value.questions[currentIndex.value])
+const progress = computed(() => ((currentIndex.value + 1) / currentQuiz.value.questions.length) * 100)
+const allAnswered = computed(() => currentQuiz.value.questions.every(q => answers.value[q.id] !== undefined && answers.value[q.id] !== '' && (!Array.isArray(answers.value[q.id]) || answers.value[q.id].length > 0)))
 
 // Per-question scoring
-const perQuestionScores = computed<number[]>(() => props.quiz.questions.map((q, idx) => {
-  if (q.type === 'multiple-choice') {
-    return answers.value[q.id] === q.correctAnswers[0] ? 1 : 0
-  } else if (q.type === 'multiple-answer') {
-    const userAns = Array.isArray(answers.value[q.id]) ? answers.value[q.id] : []
-    const correct = q.correctAnswers
-    const totalCorrect = correct.length
-    const totalOptions = q.options?.length || 0
-    const numCorrectSelected = userAns.filter((a: string) => correct.includes(a)).length
-    const numIncorrectSelected = userAns.filter((a: string) => !correct.includes(a)).length
-    let partial = 0
-    if (totalCorrect > 0 && totalOptions > 0) {
-      partial = (numCorrectSelected / totalCorrect) - (numIncorrectSelected / totalOptions)
-      if (partial < 0) partial = 0
-    }
-    return Number(partial.toFixed(2))
-  } else if (q.type === 'short-text') {
-    return ((answers.value[q.id] || '').trim().toLowerCase() === (q.correctAnswers[0] || '').trim().toLowerCase()) ? 1 : 0
-  }
-  return 0
-}))
+const perQuestionScores = computed<number[]>(() => currentQuiz.value.questions.map((q) => 
+  calculateQuestionScore(q, answers.value[q.id])
+))
 
 // Partial credit explanations
-const partialExplanations = computed(() => props.quiz.questions.map((q, idx) => {
-  if (q.type === 'multiple-answer') {
-    const userAns = Array.isArray(answers.value[q.id]) ? answers.value[q.id] : []
-    const correct = q.correctAnswers
-    const missed = correct.filter(a => !userAns.includes(a))
-    const incorrect = userAns.filter(a => !correct.includes(a))
-    if (missed.length === 0 && incorrect.length === 0) return ''
-    let msg = ''
-    if (missed.length > 0) msg += `Missed correct: ${missed.join(', ')}. `
-    if (incorrect.length > 0) msg += `Incorrectly selected: ${incorrect.join(', ')}.`
-    return msg.trim()
-  }
-  return ''
-}))
+const partialExplanations = computed(() => currentQuiz.value.questions.map((q) => 
+  getPartialExplanation(q, answers.value[q.id])
+))
 
 function scoreClass(score, q) {
   if (q.type === 'multiple-answer' && score > 0 && score < 1) return 'text-yellow-600 font-bold'
@@ -210,13 +181,15 @@ function scoreClass(score, q) {
 }
 
 function next() {
-  if (currentIndex.value < props.quiz.questions.length - 1) currentIndex.value++
+  if (currentIndex.value < currentQuiz.value.questions.length - 1) currentIndex.value++
   focusFirstInput()
 }
+
 function prev() {
   if (currentIndex.value > 0) currentIndex.value--
   focusFirstInput()
 }
+
 function confirmSubmit() {
   if (!allAnswered.value) {
     showConfirm.value = true
@@ -224,21 +197,22 @@ function confirmSubmit() {
     submit()
   }
 }
+
 async function submit() {
   showReview.value = true
   showConfirm.value = false
-  if (timerInterval) clearInterval(timerInterval)
+  stopTimer()
 
   if (!props.forceReview) {
     saving.value = true
     error.value = null
     try {
       const totalScore = perQuestionScores.value.reduce((acc, score) => acc + score, 0)
-      const maxScore = props.quiz.questions.length
+      const maxScore = currentQuiz.value.questions.length
       const percentage = Math.round((totalScore / maxScore) * 100)
 
       await userResultStore.addResult({
-        quizId: props.quiz.id,
+        quizId: currentQuiz.value.id,
         userId: authStore.user?.uid || authStore.user?.id || '',
         answers: answers.value,
         score: totalScore,
@@ -255,21 +229,14 @@ async function submit() {
     }
   }
 }
+
 function restart() {
   currentIndex.value = 0
   answers.value = {}
   showReview.value = false
   if (timerEnabled.value) {
-    timeLeft.value = props.quiz.timer || 0
-    if (timerInterval) clearInterval(timerInterval)
-    timerInterval = setInterval(() => {
-      if (timeLeft.value > 0) {
-        timeLeft.value--
-      } else {
-        clearInterval(timerInterval)
-        if (!showReview.value) submit()
-      }
-    }, 1000)
+    resetTimer()
+    startTimer()
   }
   nextTick(focusFirstInput)
 }
@@ -278,6 +245,7 @@ function restart() {
 function selectRadio(opt: string) {
   answers.value[currentQuestion.value.id] = opt
 }
+
 function toggleCheckbox(opt: string) {
   const arr = answers.value[currentQuestion.value.id] || []
   if (arr.includes(opt)) {
@@ -286,6 +254,7 @@ function toggleCheckbox(opt: string) {
     answers.value[currentQuestion.value.id] = [...arr, opt]
   }
 }
+
 function focusFirstInput() {
   nextTick(() => {
     const el = document.querySelector('.quiz-question input, .quiz-question textarea') as HTMLElement
@@ -300,23 +269,21 @@ function isSelected(q: Question, opt: string) {
   }
   return answers.value[q.id] === opt
 }
-function optionClass(q: Question, opt: string, idx: number) {
-  if (showReview.value) {
-    if (q.correctAnswers.includes(opt) && isSelected(q, opt)) return 'text-green-700 font-bold'
-    if (!q.correctAnswers.includes(opt) && isSelected(q, opt)) return 'text-red-600 font-bold'
-    if (q.correctAnswers.includes(opt)) return 'text-green-700'
-  }
-  return ''
+
+function optionClass(q: Question, opt: string) {
+  return getOptionClass(q, opt, isSelected(q, opt), showReview.value)
 }
-function shortTextClass(q: Question, idx: number) {
+
+function shortTextClass(q: Question) {
   if (showReview.value) {
-    if (isShortTextCorrect(q, idx)) return 'text-green-700 font-bold'
+    if (isShortTextCorrect(q)) return 'text-green-700 font-bold'
     else return 'text-red-600 font-bold'
   }
   return ''
 }
-function isShortTextCorrect(q: Question, idx: number) {
-  return (answers.value[q.id] || '').trim().toLowerCase() === (q.correctAnswers[0] || '').trim().toLowerCase()
+
+function isShortTextCorrect(q: Question) {
+  return calculateQuestionScore(q, answers.value[q.id]) === 1
 }
 </script>
 

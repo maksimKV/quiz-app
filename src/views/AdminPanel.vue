@@ -20,12 +20,12 @@
       <button class="px-3 py-1 bg-purple-600 text-white rounded hover:bg-purple-700" @click="showAnalytics = true">View Analytics</button>
       <button class="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700" @click="showLeaderboard = true">Leaderboard</button>
       <button class="px-3 py-1 bg-orange-600 text-white rounded hover:bg-orange-700" @click="exportAnalytics">Export Analytics</button>
-      <button class="px-3 py-1 bg-pink-600 text-white rounded hover:bg-pink-700" @click="showUserMgmt = true">User Management</button>
+      <button class="px-3 py-1 bg-pink-600 text-white rounded hover:bg-pink-700" @click="showUserManagement = true">User Management</button>
     </div>
-    <AdminQuizList v-if="!showForm" @create="onCreate" @edit="onEdit" @delete="onDelete" />
+    <AdminQuizList v-if="!showQuizForm" @create="onCreate" @edit="editQuiz" @delete="deleteQuiz" />
     <AdminQuizForm
       v-else
-      :model-value="editingQuiz"
+      :model-value="selectedQuiz"
       @save="onSave"
       @cancel="onCancel"
     />
@@ -44,7 +44,7 @@
       @close="showLeaderboard = false"
     />
     <AdminUserManagementModal
-      v-if="showUserMgmt"
+      v-if="showUserManagement"
       :users="users"
       :isAdmin="isAdmin"
       :loading="userMgmtLoading"
@@ -53,7 +53,7 @@
       :inviteEmail="inviteEmail"
       :inviteError="inviteError"
       :inviteLink="inviteLink"
-      @close="showUserMgmt = false"
+      @close="showUserManagement = false"
       @invite="inviteUser"
       @promote="promote"
       @demote="demote"
@@ -65,20 +65,25 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch, computed } from 'vue'
+import { ref, onMounted, watch, computed, nextTick } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useQuizStore } from '../store/quiz'
 import { useUserResultStore } from '../store/userResult'
 import { useAuthStore } from '../store/auth'
+import { useAuth } from '../composables/useAuth'
+import { useQuizAnalytics } from '../composables/useQuizAnalytics'
+import { downloadJson, readJsonFile } from '../utils/fileUtils'
+import { quizService } from '../services/quizService'
 import AdminQuizList from '../components/AdminQuizList.vue'
 import AdminQuizForm from '../components/AdminQuizForm.vue'
-import type { Quiz } from '../types/quiz'
-import { nextTick } from 'vue'
-import { useAuth } from '../composables/useAuth'
+import AdminQuestionBuilder from '../components/AdminQuestionBuilder.vue'
 import AdminAnalyticsModal from '../components/AdminAnalyticsModal.vue'
 import AdminLeaderboardModal from '../components/AdminLeaderboardModal.vue'
 import AdminUserManagementModal from '../components/AdminUserManagementModal.vue'
-import type Chart from 'chart.js/auto'
+import type { Quiz } from '../types/quiz'
+import type { Chart } from 'chart.js'
+import type { User } from '../types/user'
+import type { User as FirebaseUser } from 'firebase/auth'
 
 /// <reference types="chart.js" />
 
@@ -88,13 +93,14 @@ const authStore = useAuthStore()
 const { quizzes } = storeToRefs(quizStore)
 const { results } = storeToRefs(userResultStore)
 const { user } = storeToRefs(authStore)
-const { user: firebaseAuthUser, firebaseUser, loading, error, signup, login, logout } = useAuth()
 
-const showForm = ref(false)
-const editingQuiz = ref<Quiz | null>(null)
+const { attempts, avgScore, avgTime, questionCorrectPct, mostMissedOption, leaderboard } = useQuizAnalytics(quizzes.value, results.value)
+
+const showQuizForm = ref(false)
 const showAnalytics = ref(false)
 const showLeaderboard = ref(false)
-const showUserMgmt = ref(false)
+const showUserManagement = ref(false)
+const selectedQuiz = ref<Quiz | null>(null)
 const inviteEmail = ref('')
 const invitePassword = ref('')
 const inviteName = ref('')
@@ -103,37 +109,40 @@ const inviteLink = ref('')
 const users = ref([])
 const userMgmtLoading = ref(false)
 const userMgmtError = ref('')
-const isAdmin = computed(() => firebaseAuthUser.value && firebaseAuthUser.value.isAdmin)
+const isAdmin = computed(() => user.value && user.value.isAdmin)
 const globalError = ref('')
 const globalLoading = ref(false)
 
+// Chart instances
+let chartInstances: Record<string, Chart> = {}
+
 function onCreate() {
-  editingQuiz.value = null
-  showForm.value = true
+  selectedQuiz.value = null
+  showQuizForm.value = true
 }
 
-function onEdit(quiz: Quiz) {
-  editingQuiz.value = quiz
-  showForm.value = true
+function editQuiz(quiz: Quiz) {
+  selectedQuiz.value = quiz
+  showQuizForm.value = true
 }
 
-function onDelete(id: string) {
-  if (confirm('Are you sure you want to delete this quiz?')) {
-    quizStore.deleteQuiz(id)
+function deleteQuiz(quiz: Quiz) {
+  if (confirm(`Are you sure you want to delete "${quiz.title}"?`)) {
+    quizStore.deleteQuiz(quiz.id)
   }
 }
 
 function onSave(quiz: Quiz) {
-  if (editingQuiz.value) {
+  if (selectedQuiz.value) {
     quizStore.updateQuiz(quiz)
   } else {
     quizStore.addQuiz({ ...quiz, id: Date.now().toString(), questions: quiz.questions || [] })
   }
-  showForm.value = false
+  showQuizForm.value = false
 }
 
 function onCancel() {
-  showForm.value = false
+  showQuizForm.value = false
 }
 
 function exportQuizzes() {
@@ -149,101 +158,148 @@ function exportQuizzes() {
   URL.revokeObjectURL(url)
 }
 
-function importQuizzes(e: Event) {
+async function importQuizzes(e: Event) {
   const input = e.target as HTMLInputElement
   if (!input.files || !input.files[0]) return
-  const file = input.files[0]
-  const reader = new FileReader()
-  reader.onload = (event) => {
-    try {
-      const imported = JSON.parse(event.target?.result as string)
-      if (Array.isArray(imported)) {
-        let added = 0, updated = 0
-        imported.forEach(q => {
-          if (q.id && q.title && q.questions) {
-            const existing = quizStore.quizzes.find(existingQ => existingQ.id === q.id)
-            if (existing) {
-              quizStore.updateQuiz({ ...existing, ...q })
-              updated++
-            } else {
-              quizStore.addQuiz(q)
-              added++
+  
+  try {
+    const imported = await readJsonFile(input.files[0])
+    if (Array.isArray(imported)) {
+      let added = 0, updated = 0
+      for (const q of imported) {
+        if (q.id && q.title && q.questions) {
+          const existing = quizzes.value.find(existingQ => existingQ.id === q.id)
+          if (existing) {
+            await quizStore.updateQuiz({ ...existing, ...q })
+            updated++
+          } else {
+            const { id, ...quizData } = q
+            const newQuiz: Omit<Quiz, 'id'> = {
+              title: quizData.title,
+              description: quizData.description,
+              tags: quizData.tags,
+              published: quizData.published,
+              questions: quizData.questions,
+              timer: quizData.timer
             }
+            await quizStore.addQuiz(newQuiz)
+            added++
           }
-        })
-        alert(`Import complete. Added: ${added}, Updated: ${updated}`)
+        }
       }
-    } catch (err) {
-      alert('Invalid quizzes file.')
+      alert(`Import complete. Added: ${added}, Updated: ${updated}`)
     }
+  } catch (err) {
+    alert('Invalid quizzes file.')
   }
-  reader.readAsText(file)
 }
 
-// Analytics helpers
-function attempts(quizId: string) {
-  return results.value.filter(r => r.quizId === quizId).length
-}
-function avgScore(quizId: string) {
-  const quizResults = results.value.filter(r => r.quizId === quizId)
-  if (!quizResults.length) return 0
-  const sum = quizResults.reduce((acc, r) => acc + r.score, 0)
-  return (sum / quizResults.length).toFixed(2)
-}
-function avgTime(quizId: string) {
-  const quizResults = results.value.filter(r => r.quizId === quizId)
-  if (!quizResults.length) return '0s'
-  const sum = quizResults.reduce((acc, r) => acc + (new Date(r.finishedAt).getTime() - new Date(r.startedAt).getTime()), 0)
-  const avgMs = sum / quizResults.length
-  if (avgMs < 1000) return '<1s'
-  if (avgMs < 60000) return Math.round(avgMs / 1000) + 's'
-  return (avgMs / 60000).toFixed(1) + 'm'
-}
-function questionCorrectPct(quizId: string, questionId: string) {
-  const quiz = quizzes.value.find(q => q.id === quizId)
-  if (!quiz) return 0
-  const q = quiz.questions.find(q => q.id === questionId)
-  if (!q) return 0
-  const quizResults = results.value.filter(r => r.quizId === quizId)
-  if (!quizResults.length) return 0
-  let correct = 0
-  quizResults.forEach(r => {
-    if (q.type === 'multiple-choice') {
-      if (typeof r.answers[questionId] === 'string' && r.answers[questionId] === q.correctAnswers[0]) correct++
-    } else if (q.type === 'multiple-answer') {
-      const userAns = Array.isArray(r.answers[questionId]) ? r.answers[questionId] : []
-      const correctSet = new Set(q.correctAnswers)
-      if (userAns.length && userAns.every((a: string) => correctSet.has(a)) && userAns.length === q.correctAnswers.length) correct++
-    } else if (q.type === 'short-text') {
-      const ans = typeof r.answers[questionId] === 'string' ? r.answers[questionId] : ''
-      if (ans.trim().toLowerCase() === (q.correctAnswers[0] || '').trim().toLowerCase()) correct++
-    }
-  })
-  return Math.round((correct / quizResults.length) * 100)
-}
-function mostMissedOption(quizId: string, questionId: string) {
-  const quiz = quizzes.value.find(q => q.id === quizId)
-  if (!quiz) return ''
-  const q = quiz.questions.find(q => q.id === questionId)
-  if (!q || !q.options) return ''
-  const quizResults = results.value.filter(r => r.quizId === quizId)
-  if (!quizResults.length) return ''
-  const missCounts: Record<string, number> = {}
-  q.options.forEach(opt => { missCounts[opt] = 0 })
-  quizResults.forEach(r => {
-    if (q.type === 'multiple-choice' || q.type === 'multiple-answer') {
-      const userAns = q.type === 'multiple-answer' ? (Array.isArray(r.answers[questionId]) ? r.answers[questionId] : []) : (typeof r.answers[questionId] === 'string' ? [r.answers[questionId]] : [])
-      q.options.forEach(opt => {
-        if (!userAns.includes(opt) && q.correctAnswers.includes(opt)) missCounts[opt]++
-      })
-    }
-  })
-  const mostMissed = Object.entries(missCounts).sort((a, b) => b[1] - a[1])[0]
-  return mostMissed && mostMissed[1] > 0 ? mostMissed[0] : ''
+function exportAnalytics() {
+  const data = quizzes.value.map(quiz => ({
+    title: quiz.title,
+    attempts: attempts(quiz.id),
+    avgScore: avgScore(quiz.id),
+    avgTime: avgTime(quiz.id),
+    perQuestion: quiz.questions.map(q => ({
+      content: q.content,
+      correctPct: questionCorrectPct(quiz.id, q.id),
+      mostMissed: mostMissedOption(quiz.id, q.id)
+    }))
+  }))
+  downloadJson(data, 'quiz-analytics.json')
 }
 
-// Score distribution chart
-let chartInstances: Record<string, any> = {}
+// More user info for leaderboard
+function userInfo(userId: string) {
+  // Try to get from auth store, fallback to userId
+  const currentUser = authStore.user
+  if (currentUser && currentUser.uid === userId) return currentUser
+  // Optionally, look up from a user list if available
+  return null
+}
+
+async function inviteUser() {
+  inviteError.value = ''
+  inviteLink.value = ''
+  globalError.value = ''
+  globalLoading.value = true
+  try {
+    const token = user.value.value ? await user.value.value.getIdToken() : ''
+    const res = await fetch('/api/users/invite', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ email: inviteEmail.value, name: inviteName.value })
+    })
+    if (!res.ok) throw new Error(await res.text())
+    const data = await res.json()
+    inviteLink.value = data.inviteLink
+    inviteEmail.value = ''
+    inviteName.value = ''
+  } catch (e: any) {
+    inviteError.value = e.message || 'Failed to invite user.'
+    globalError.value = inviteError.value
+  } finally {
+    globalLoading.value = false
+  }
+}
+
+async function fetchUsers() {
+  userMgmtLoading.value = true
+  userMgmtError.value = ''
+  globalError.value = ''
+  globalLoading.value = true
+  try {
+    const token = user.value.value ? await user.value.value.getIdToken() : ''
+    const res = await fetch('/api/users', {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+    if (!res.ok) throw new Error(await res.text())
+    users.value = await res.json()
+  } catch (e: any) {
+    userMgmtError.value = e.message || 'Failed to fetch users.'
+    globalError.value = userMgmtError.value
+  } finally {
+    userMgmtLoading.value = false
+    globalLoading.value = false
+  }
+}
+
+async function userMgmtAction(url, body, method = 'POST') {
+  userMgmtError.value = ''
+  globalError.value = ''
+  globalLoading.value = true
+  try {
+    const token = user.value.value ? await user.value.value.getIdToken() : ''
+    const res = await fetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: body ? JSON.stringify(body) : undefined
+    })
+    if (!res.ok) throw new Error(await res.text())
+    await fetchUsers()
+  } catch (e: any) {
+    userMgmtError.value = e.message || 'Action failed.'
+    globalError.value = userMgmtError.value
+  } finally {
+    globalLoading.value = false
+  }
+}
+
+async function promote(u) { await userMgmtAction('/api/users/promote', { uid: u.uid }) }
+async function demote(u) { await userMgmtAction('/api/users/demote', { uid: u.uid }) }
+async function deleteUser(u) { if (!confirm(`Delete user ${u.displayName || u.email}?`)) return; await userMgmtAction(`/api/users/${u.uid}`, null, 'DELETE') }
+
+onMounted(async () => {
+  // Initialize quiz subscription (this will automatically update quizzes)
+  const initialQuizzes = await quizService.getAllQuizzes()
+  quizzes.value = initialQuizzes
+  // Fetch initial results
+  await userResultStore.fetchAllResults()
+  if (showUserManagement.value) fetchUsers()
+})
+watch(showUserManagement, (val) => { if (val) fetchUsers() })
+
+// Chart rendering logic
 watch([showAnalytics, quizzes, results], ([show]) => {
   if (show) {
     nextTick(() => {
@@ -291,130 +347,4 @@ watch([showAnalytics, quizzes, results], ([show]) => {
     })
   }
 })
-
-// Leaderboard
-const leaderboard = computed(() => {
-  const userScores: Record<string, number> = {}
-  results.value.forEach(r => {
-    userScores[r.userId] = (userScores[r.userId] || 0) + r.score
-  })
-  return Object.entries(userScores)
-    .map(([userId, totalScore]) => ({ userId, totalScore }))
-    .sort((a, b) => b.totalScore - a.totalScore)
-    .slice(0, 10)
-})
-function userName(userId: string) {
-  // Try to get from auth store, fallback to userId
-  if (firebaseAuthUser.value && firebaseAuthUser.value.id === userId) return firebaseAuthUser.value.name
-  return userId
-}
-
-function exportAnalytics() {
-  const data = quizzes.value.map(quiz => ({
-    id: quiz.id,
-    title: quiz.title,
-    attempts: attempts(quiz.id),
-    avgScore: avgScore(quiz.id),
-    avgTime: avgTime(quiz.id),
-    perQuestion: quiz.questions.map(q => ({
-      id: q.id,
-      content: q.content,
-      correctPct: questionCorrectPct(quiz.id, q.id),
-      mostMissed: mostMissedOption(quiz.id, q.id)
-    }))
-  }))
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = 'quiz-analytics.json'
-  document.body.appendChild(a)
-  a.click()
-  document.body.removeChild(a)
-  URL.revokeObjectURL(url)
-}
-
-// More user info for leaderboard
-function userInfo(userId: string) {
-  // Try to get from auth store, fallback to userId
-  if (firebaseAuthUser.value && firebaseAuthUser.value.id === userId) return firebaseAuthUser.value
-  // Optionally, look up from a user list if available
-  return null
-}
-
-async function inviteUser() {
-  inviteError.value = ''
-  inviteLink.value = ''
-  globalError.value = ''
-  globalLoading.value = true
-  try {
-    const token = firebaseUser.value ? await firebaseUser.value.getIdToken() : ''
-    const res = await fetch('/api/users/invite', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ email: inviteEmail.value, name: inviteName.value })
-    })
-    if (!res.ok) throw new Error(await res.text())
-    const data = await res.json()
-    inviteLink.value = data.inviteLink
-    inviteEmail.value = ''
-    inviteName.value = ''
-  } catch (e: any) {
-    inviteError.value = e.message || 'Failed to invite user.'
-    globalError.value = inviteError.value
-  } finally {
-    globalLoading.value = false
-  }
-}
-
-async function fetchUsers() {
-  userMgmtLoading.value = true
-  userMgmtError.value = ''
-  globalError.value = ''
-  globalLoading.value = true
-  try {
-    const token = firebaseUser.value ? await firebaseUser.value.getIdToken() : ''
-    const res = await fetch('/api/users', {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-    if (!res.ok) throw new Error(await res.text())
-    users.value = await res.json()
-  } catch (e: any) {
-    userMgmtError.value = e.message || 'Failed to fetch users.'
-    globalError.value = userMgmtError.value
-  } finally {
-    userMgmtLoading.value = false
-    globalLoading.value = false
-  }
-}
-
-async function userMgmtAction(url, body, method = 'POST') {
-  userMgmtError.value = ''
-  globalError.value = ''
-  globalLoading.value = true
-  try {
-    const token = firebaseUser.value ? await firebaseUser.value.getIdToken() : ''
-    const res = await fetch(url, {
-      method,
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      body: body ? JSON.stringify(body) : undefined
-    })
-    if (!res.ok) throw new Error(await res.text())
-    await fetchUsers()
-  } catch (e: any) {
-    userMgmtError.value = e.message || 'Action failed.'
-    globalError.value = userMgmtError.value
-  } finally {
-    globalLoading.value = false
-  }
-}
-
-async function promote(u) { await userMgmtAction('/api/users/promote', { uid: u.uid }) }
-async function demote(u) { await userMgmtAction('/api/users/demote', { uid: u.uid }) }
-async function deleteUser(u) { if (!confirm(`Delete user ${u.displayName || u.email}?`)) return; await userMgmtAction(`/api/users/${u.uid}`, null, 'DELETE') }
-
-onMounted(() => {
-  if (showUserMgmt.value) fetchUsers()
-})
-watch(showUserMgmt, (val) => { if (val) fetchUsers() })
 </script> 

@@ -1,4 +1,4 @@
-import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, getDoc, query, where } from 'firebase/firestore';
+import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, getDoc, query, where, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase';
 import type { Quiz } from '../types/quiz';
 
@@ -39,5 +39,24 @@ export const quizService = {
   async deleteQuiz(id: string): Promise<void> {
     const docRef = doc(db, COLLECTION_NAME, id);
     await deleteDoc(docRef);
+  },
+
+  subscribeToQuiz(quizId: string, callback: (quiz: Quiz | null) => void) {
+    const docRef = doc(db, COLLECTION_NAME, quizId);
+    return onSnapshot(docRef, (snapshot) => {
+      if (snapshot.exists()) {
+        callback({ id: snapshot.id, ...snapshot.data() } as Quiz);
+      } else {
+        callback(null);
+      }
+    });
+  },
+
+  subscribeToPublishedQuizzes(callback: (quizzes: Quiz[]) => void) {
+    const q = query(quizzesRef, where("published", "==", true));
+    return onSnapshot(q, (snapshot) => {
+      const quizzes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Quiz));
+      callback(quizzes);
+    });
   }
 }; 

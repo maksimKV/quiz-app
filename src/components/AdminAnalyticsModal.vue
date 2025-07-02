@@ -27,6 +27,7 @@
 import { onMounted, watch, nextTick } from 'vue'
 import { toRefs } from 'vue'
 import type { Quiz } from '../types/quiz'
+import { useQuizAnalytics } from '../composables/useQuizAnalytics'
 
 const props = defineProps<{
   quizzes: Quiz[],
@@ -35,66 +36,7 @@ const props = defineProps<{
 }>()
 
 const { quizzes, results } = toRefs(props)
-
-function attempts(quizId: string) {
-  return results.value.filter(r => r.quizId === quizId).length
-}
-function avgScore(quizId: string) {
-  const quizResults = results.value.filter(r => r.quizId === quizId)
-  if (!quizResults.length) return 0
-  const sum = quizResults.reduce((acc, r) => acc + r.score, 0)
-  return (sum / quizResults.length).toFixed(2)
-}
-function avgTime(quizId: string) {
-  const quizResults = results.value.filter(r => r.quizId === quizId)
-  if (!quizResults.length) return '0s'
-  const sum = quizResults.reduce((acc, r) => acc + (new Date(r.finishedAt).getTime() - new Date(r.startedAt).getTime()), 0)
-  const avgMs = sum / quizResults.length
-  if (avgMs < 1000) return '<1s'
-  if (avgMs < 60000) return Math.round(avgMs / 1000) + 's'
-  return (avgMs / 60000).toFixed(1) + 'm'
-}
-function questionCorrectPct(quizId: string, questionId: string) {
-  const quiz = quizzes.value.find(q => q.id === quizId)
-  if (!quiz) return 0
-  const q = quiz.questions.find(q => q.id === questionId)
-  if (!q) return 0
-  const quizResults = results.value.filter(r => r.quizId === quizId)
-  if (!quizResults.length) return 0
-  let correct = 0
-  quizResults.forEach(r => {
-    if (q.type === 'multiple-choice') {
-      if (r.answers[questionId] === q.correctAnswers[0]) correct++
-    } else if (q.type === 'multiple-answer') {
-      const userAns = Array.isArray(r.answers[questionId]) ? r.answers[questionId] : []
-      const correctSet = new Set(q.correctAnswers)
-      if (userAns.length && userAns.every(a => correctSet.has(a)) && userAns.length === q.correctAnswers.length) correct++
-    } else if (q.type === 'short-text') {
-      if ((r.answers[questionId] || '').trim().toLowerCase() === (q.correctAnswers[0] || '').trim().toLowerCase()) correct++
-    }
-  })
-  return Math.round((correct / quizResults.length) * 100)
-}
-function mostMissedOption(quizId: string, questionId: string) {
-  const quiz = quizzes.value.find(q => q.id === quizId)
-  if (!quiz) return ''
-  const q = quiz.questions.find(q => q.id === questionId)
-  if (!q || !q.options) return ''
-  const quizResults = results.value.filter(r => r.quizId === quizId)
-  if (!quizResults.length) return ''
-  const missCounts: Record<string, number> = {}
-  q.options.forEach(opt => { missCounts[opt] = 0 })
-  quizResults.forEach(r => {
-    if (q.type === 'multiple-choice' || q.type === 'multiple-answer') {
-      const userAns = q.type === 'multiple-answer' ? (Array.isArray(r.answers[questionId]) ? r.answers[questionId] : []) : [r.answers[questionId]]
-      q.options.forEach(opt => {
-        if (!userAns.includes(opt) && q.correctAnswers.includes(opt)) missCounts[opt]++
-      })
-    }
-  })
-  const mostMissed = Object.entries(missCounts).sort((a, b) => b[1] - a[1])[0]
-  return mostMissed && mostMissed[1] > 0 ? mostMissed[0] : ''
-}
+const { attempts, avgScore, avgTime, questionCorrectPct, mostMissedOption } = useQuizAnalytics(quizzes.value, results.value)
 
 // Chart rendering logic
 let chartInstances: Record<string, any> = {}
