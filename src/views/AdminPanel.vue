@@ -19,81 +19,38 @@
       @save="onSave"
       @cancel="onCancel"
     />
-    <div v-if="showAnalytics" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
-      <div class="bg-white dark:bg-gray-800 p-6 rounded shadow max-w-2xl w-full relative overflow-auto">
-        <button class="absolute top-2 right-2 text-gray-500 hover:text-gray-800 dark:hover:text-gray-200" @click="showAnalytics = false">&times;</button>
-        <h2 class="text-xl font-bold mb-4">Quiz Analytics</h2>
-        <div v-for="quiz in quizzes" :key="quiz.id" class="mb-8">
-          <div class="font-semibold mb-1">{{ quiz.title }}</div>
-          <div class="text-sm mb-1">Attempts: {{ attempts(quiz.id) }}, Average Score: {{ avgScore(quiz.id) }}, Avg. Time: {{ avgTime(quiz.id) }}</div>
-          <canvas :id="'chart-' + quiz.id" height="120"></canvas>
-          <div v-if="quiz.questions.length" class="mt-4">
-            <h4 class="font-semibold mb-2 text-sm">Per-Question Stats</h4>
-            <canvas :id="'qchart-' + quiz.id" height="80"></canvas>
-            <ul class="text-xs space-y-1 mt-2">
-              <li v-for="(q, qidx) in quiz.questions" :key="q.id">
-                <span class="font-bold">Q{{ qidx + 1 }}:</span> {{ q.content }} —
-                <span>Correct: {{ questionCorrectPct(quiz.id, q.id) }}%</span>
-                <span v-if="mostMissedOption(quiz.id, q.id)">, Most Missed: {{ mostMissedOption(quiz.id, q.id) }}</span>
-              </li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div v-if="showLeaderboard" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
-      <div class="bg-white dark:bg-gray-800 p-6 rounded shadow max-w-xl w-full relative overflow-auto">
-        <button class="absolute top-2 right-2 text-gray-500 hover:text-gray-800 dark:hover:text-gray-200" @click="showLeaderboard = false">&times;</button>
-        <h2 class="text-xl font-bold mb-4">Leaderboard</h2>
-        <ol class="list-decimal pl-6">
-          <li v-for="(entry, idx) in leaderboard" :key="entry.userId" class="mb-2">
-            <span class="font-semibold">{{ userName(entry.userId) }}</span>
-            <span v-if="userInfo(entry.userId)"> ({{ userInfo(entry.userId).email }})</span>
-            — Total Score: <span class="font-mono">{{ entry.totalScore }}</span>
-          </li>
-        </ol>
-      </div>
-    </div>
-    <div v-if="showUserMgmt" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
-      <div class="bg-white dark:bg-gray-800 p-6 rounded shadow max-w-xl w-full relative overflow-auto">
-        <button class="absolute top-2 right-2 text-gray-500 hover:text-gray-800 dark:hover:text-gray-200" @click="showUserMgmt = false">&times;</button>
-        <h2 class="text-xl font-bold mb-4">User Management</h2>
-        <form v-if="isAdmin" @submit.prevent="inviteUser" class="mb-4 flex flex-wrap gap-2 items-end">
-          <input v-model="inviteName" type="text" placeholder="Name" class="input w-32" />
-          <input v-model="inviteEmail" type="email" placeholder="Email" class="input w-48" required />
-          <button type="submit" class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700">Invite User</button>
-          <span v-if="inviteError" class="text-red-600 text-xs ml-2">{{ inviteError }}</span>
-          <span v-if="inviteLink" class="text-green-600 text-xs ml-2">Invite Link: <a :href="inviteLink" target="_blank" class="underline">Open</a></span>
-        </form>
-        <div v-if="userMgmtLoading" class="text-gray-500 mb-2">Loading users...</div>
-        <div v-if="userMgmtError" class="text-red-600 mb-2">{{ userMgmtError }}</div>
-        <table v-if="!userMgmtLoading" class="w-full text-sm mb-4">
-          <thead>
-            <tr>
-              <th class="text-left">Name</th>
-              <th class="text-left">Email</th>
-              <th class="text-left">Role</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="u in users" :key="u.uid">
-              <td>{{ u.displayName || u.email }}</td>
-              <td>{{ u.email }}</td>
-              <td>
-                <span v-if="u.isAdmin" class="text-green-700 font-semibold">Admin</span>
-                <span v-else class="text-gray-700">User</span>
-              </td>
-              <td class="flex gap-2">
-                <button v-if="!u.isAdmin" class="px-2 py-1 bg-green-600 text-white rounded" @click="promote(u)">Promote</button>
-                <button v-if="u.isAdmin" class="px-2 py-1 bg-yellow-600 text-white rounded" @click="demote(u)">Demote</button>
-                <button class="px-2 py-1 bg-red-600 text-white rounded" @click="deleteUser(u)">Delete</button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
+    <AdminAnalyticsModal
+      v-if="showAnalytics"
+      :quizzes="quizzes"
+      :results="results"
+      :show="showAnalytics"
+      @close="showAnalytics = false"
+    />
+    <AdminLeaderboardModal
+      v-if="showLeaderboard"
+      :leaderboard="leaderboard"
+      :user="user"
+      :userInfo="userInfo"
+      @close="showLeaderboard = false"
+    />
+    <AdminUserManagementModal
+      v-if="showUserMgmt"
+      :users="users"
+      :isAdmin="isAdmin"
+      :loading="userMgmtLoading"
+      :error="userMgmtError"
+      :inviteName="inviteName"
+      :inviteEmail="inviteEmail"
+      :inviteError="inviteError"
+      :inviteLink="inviteLink"
+      @close="showUserMgmt = false"
+      @invite="inviteUser"
+      @promote="promote"
+      @demote="demote"
+      @delete="deleteUser"
+      @update:inviteName="inviteName = $event"
+      @update:inviteEmail="inviteEmail = $event"
+    />
   </div>
 </template>
 
@@ -108,6 +65,12 @@ import AdminQuizForm from '../components/AdminQuizForm.vue'
 import type { Quiz } from '../types/quiz'
 import { nextTick } from 'vue'
 import { useAuth } from '../composables/useAuth'
+import AdminAnalyticsModal from '../components/AdminAnalyticsModal.vue'
+import AdminLeaderboardModal from '../components/AdminLeaderboardModal.vue'
+import AdminUserManagementModal from '../components/AdminUserManagementModal.vue'
+import type Chart from 'chart.js/auto'
+
+/// <reference types="chart.js" />
 
 const quizStore = useQuizStore()
 const userResultStore = useUserResultStore()
@@ -115,7 +78,7 @@ const authStore = useAuthStore()
 const { quizzes } = storeToRefs(quizStore)
 const { results } = storeToRefs(userResultStore)
 const { user } = storeToRefs(authStore)
-const { signup } = useAuth()
+const { user: firebaseAuthUser, firebaseUser, loading, error, signup, login, logout } = useAuth()
 
 const showForm = ref(false)
 const editingQuiz = ref<Quiz | null>(null)
@@ -130,7 +93,7 @@ const inviteLink = ref('')
 const users = ref([])
 const userMgmtLoading = ref(false)
 const userMgmtError = ref('')
-const isAdmin = computed(() => user.value && user.value.isAdmin)
+const isAdmin = computed(() => firebaseAuthUser.value && firebaseAuthUser.value.isAdmin)
 
 function onCreate() {
   editingQuiz.value = null
@@ -234,13 +197,14 @@ function questionCorrectPct(quizId: string, questionId: string) {
   let correct = 0
   quizResults.forEach(r => {
     if (q.type === 'multiple-choice') {
-      if (r.answers[questionId] === q.correctAnswers[0]) correct++
+      if (typeof r.answers[questionId] === 'string' && r.answers[questionId] === q.correctAnswers[0]) correct++
     } else if (q.type === 'multiple-answer') {
       const userAns = Array.isArray(r.answers[questionId]) ? r.answers[questionId] : []
       const correctSet = new Set(q.correctAnswers)
-      if (userAns.length && userAns.every(a => correctSet.has(a)) && userAns.length === q.correctAnswers.length) correct++
+      if (userAns.length && userAns.every((a: string) => correctSet.has(a)) && userAns.length === q.correctAnswers.length) correct++
     } else if (q.type === 'short-text') {
-      if ((r.answers[questionId] || '').trim().toLowerCase() === (q.correctAnswers[0] || '').trim().toLowerCase()) correct++
+      const ans = typeof r.answers[questionId] === 'string' ? r.answers[questionId] : ''
+      if (ans.trim().toLowerCase() === (q.correctAnswers[0] || '').trim().toLowerCase()) correct++
     }
   })
   return Math.round((correct / quizResults.length) * 100)
@@ -256,7 +220,7 @@ function mostMissedOption(quizId: string, questionId: string) {
   q.options.forEach(opt => { missCounts[opt] = 0 })
   quizResults.forEach(r => {
     if (q.type === 'multiple-choice' || q.type === 'multiple-answer') {
-      const userAns = q.type === 'multiple-answer' ? (Array.isArray(r.answers[questionId]) ? r.answers[questionId] : []) : [r.answers[questionId]]
+      const userAns = q.type === 'multiple-answer' ? (Array.isArray(r.answers[questionId]) ? r.answers[questionId] : []) : (typeof r.answers[questionId] === 'string' ? [r.answers[questionId]] : [])
       q.options.forEach(opt => {
         if (!userAns.includes(opt) && q.correctAnswers.includes(opt)) missCounts[opt]++
       })
@@ -281,6 +245,7 @@ watch([showAnalytics, quizzes, results], ([show]) => {
             const idx = Math.round((r.score / quiz.questions.length) * 10)
             bins[Math.min(idx, 10)]++
           })
+          // @ts-ignore
           import('chart.js/auto').then(({ default: Chart }) => {
             chartInstances[quiz.id] = new Chart(ctx, {
               type: 'bar',
@@ -298,6 +263,7 @@ watch([showAnalytics, quizzes, results], ([show]) => {
           if (chartInstances['q' + quiz.id]) chartInstances['q' + quiz.id].destroy()
           const labels = quiz.questions.map((q, i) => `Q${i + 1}`)
           const data = quiz.questions.map(q => questionCorrectPct(quiz.id, q.id))
+          // @ts-ignore
           import('chart.js/auto').then(({ default: Chart }) => {
             chartInstances['q' + quiz.id] = new Chart(ctxQ, {
               type: 'bar',
@@ -327,7 +293,7 @@ const leaderboard = computed(() => {
 })
 function userName(userId: string) {
   // Try to get from auth store, fallback to userId
-  if (user.value && user.value.id === userId) return user.value.name
+  if (firebaseAuthUser.value && firebaseAuthUser.value.id === userId) return firebaseAuthUser.value.name
   return userId
 }
 
@@ -359,7 +325,7 @@ function exportAnalytics() {
 // More user info for leaderboard
 function userInfo(userId: string) {
   // Try to get from auth store, fallback to userId
-  if (user.value && user.value.id === userId) return user.value
+  if (firebaseAuthUser.value && firebaseAuthUser.value.id === userId) return firebaseAuthUser.value
   // Optionally, look up from a user list if available
   return null
 }
@@ -368,7 +334,7 @@ async function inviteUser() {
   inviteError.value = ''
   inviteLink.value = ''
   try {
-    const token = user.value ? await user.value.getIdToken() : ''
+    const token = firebaseUser.value ? await firebaseUser.value.getIdToken() : ''
     const res = await fetch('/api/users/invite', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
@@ -388,7 +354,7 @@ async function fetchUsers() {
   userMgmtLoading.value = true
   userMgmtError.value = ''
   try {
-    const token = user.value ? await user.value.getIdToken() : ''
+    const token = firebaseUser.value ? await firebaseUser.value.getIdToken() : ''
     const res = await fetch('/api/users', {
       headers: { Authorization: `Bearer ${token}` }
     })
@@ -414,7 +380,7 @@ async function deleteUser(u) {
 async function userMgmtAction(url, body, method = 'POST') {
   userMgmtError.value = ''
   try {
-    const token = user.value ? await user.value.getIdToken() : ''
+    const token = firebaseUser.value ? await firebaseUser.value.getIdToken() : ''
     const res = await fetch(url, {
       method,
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },

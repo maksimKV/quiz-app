@@ -4,19 +4,21 @@ import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, on
 import { useAuthStore } from '../store/auth'
 
 const user = ref<User | null>(null)
+const firebaseUser = ref<User | null>(null)
 const loading = ref(true)
 const error = ref<string | null>(null)
 
 const authStore = useAuthStore()
 
-const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-  user.value = firebaseUser
+const unsubscribe = onAuthStateChanged(auth, (firebaseUserObj) => {
+  firebaseUser.value = firebaseUserObj
+  user.value = firebaseUserObj
   loading.value = false
-  if (firebaseUser) {
+  if (firebaseUserObj) {
     authStore.login({
-      id: firebaseUser.uid,
-      name: firebaseUser.displayName || firebaseUser.email || '',
-      email: firebaseUser.email || '',
+      id: firebaseUserObj.uid,
+      name: firebaseUserObj.displayName || firebaseUserObj.email || '',
+      email: firebaseUserObj.email || '',
       isAdmin: false // You can extend this with custom claims or Firestore roles
     })
   } else {
@@ -58,6 +60,7 @@ async function logout() {
 export function useAuth() {
   return {
     user,
+    firebaseUser,
     loading,
     error,
     signup,
