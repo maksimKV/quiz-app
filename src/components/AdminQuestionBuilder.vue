@@ -13,6 +13,7 @@
           <div v-for="(opt, oidx) in q.options" :key="oidx" class="ml-4 text-sm">- {{ opt }}</div>
         </div>
         <div v-if="q.explanation" class="ml-4 text-xs text-green-700">Explanation: {{ q.explanation }}</div>
+        <div v-if="q._error" class="text-red-500 text-xs mt-1">{{ q._error }}</div>
       </li>
     </ul>
     <form @submit.prevent="addQuestion" class="space-y-2 bg-gray-100 dark:bg-gray-800 p-4 rounded">
@@ -26,27 +27,32 @@
       </div>
       <div>
         <label class="block font-semibold mb-1">Question</label>
-        <input v-model="newQ.content" type="text" class="input" required />
+        <input v-model="newQ.content" type="text" class="input" :class="{'border-red-500': newErrors.content || newErrors.duplicate}" required />
+        <div v-if="newErrors.content" class="text-red-500 text-xs mt-1">Question content is required.</div>
+        <div v-if="newErrors.duplicate" class="text-red-500 text-xs mt-1">Duplicate question content is not allowed.</div>
       </div>
       <div v-if="newQ.type !== 'short-text'">
         <label class="block font-semibold mb-1">Options (comma separated)</label>
-        <input v-model="optionsInput" type="text" class="input" />
+        <input v-model="optionsInput" type="text" class="input" :class="{'border-red-500': newErrors.options}" />
+        <div v-if="newErrors.options" class="text-red-500 text-xs mt-1">At least two unique options are required.</div>
       </div>
       <div>
         <label class="block font-semibold mb-1">Correct Answer(s) (comma separated)</label>
-        <input v-model="answersInput" type="text" class="input" />
+        <input v-model="answersInput" type="text" class="input" :class="{'border-red-500': newErrors.correctAnswers}" />
+        <div v-if="newErrors.correctAnswers" class="text-red-500 text-xs mt-1">At least one correct answer is required.</div>
       </div>
       <div>
         <label class="block font-semibold mb-1">Explanation (optional)</label>
-        <input v-model="newQ.explanation" type="text" class="input" />
+        <input v-model="newQ.explanation" type="text" class="input" :class="{'border-red-500': newErrors.explanation}" />
+        <div v-if="newErrors.explanation" class="text-red-500 text-xs mt-1">Explanation is required if there are incorrect options.</div>
       </div>
-      <button type="submit" class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700">Add Question</button>
+      <button type="submit" class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700" :disabled="!canAdd">Add Question</button>
     </form>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, computed } from 'vue'
 import type { Question, QuestionType } from '../types/quiz'
 
 const props = defineProps<{
@@ -75,24 +81,90 @@ const newQ = ref<Partial<Question>>({
 const optionsInput = ref('')
 const answersInput = ref('')
 
+const newErrors = ref({
+  content: false,
+  duplicate: false,
+  options: false,
+  correctAnswers: false,
+  explanation: false,
+})
+
+const canAdd = computed(() => {
+  if (!newQ.value.content) return false
+  if (questions.value.some(q => q.content.trim().toLowerCase() === newQ.value.content?.trim().toLowerCase())) return false
+  if (newQ.value.type !== 'short-text') {
+    const opts = optionsInput.value.split(',').map(o => o.trim()).filter(Boolean)
+    if (opts.length < 2 || new Set(opts).size !== opts.length) return false
+  }
+  const corrects = answersInput.value.split(',').map(a => a.trim()).filter(Boolean)
+  if (corrects.length < 1) return false
+  // Explanation required if there are incorrect options
+  if (newQ.value.type !== 'short-text') {
+    const opts = optionsInput.value.split(',').map(o => o.trim()).filter(Boolean)
+    const incorrectOpts = opts.filter(opt => !corrects.includes(opt))
+    if (incorrectOpts.length > 0 && !newQ.value.explanation) return false
+  }
+  return true
+})
+
+function validateNew() {
+  newErrors.value.content = !newQ.value.content
+  newErrors.value.duplicate = questions.value.some(q => q.content.trim().toLowerCase() === newQ.value.content?.trim().toLowerCase())
+  if (newQ.value.type !== 'short-text') {
+    const opts = optionsInput.value.split(',').map(o => o.trim()).filter(Boolean)
+    newErrors.value.options = opts.length < 2 || new Set(opts).size !== opts.length
+  } else {
+    newErrors.value.options = false
+  }
+  const corrects = answersInput.value.split(',').map(a => a.trim()).filter(Boolean)
+  newErrors.value.correctAnswers = corrects.length < 1
+  // Explanation required if there are incorrect options
+  if (newQ.value.type !== 'short-text') {
+    const opts = optionsInput.value.split(',').map(o => o.trim()).filter(Boolean)
+    const incorrectOpts = opts.filter(opt => !corrects.includes(opt))
+    newErrors.value.explanation = incorrectOpts.length > 0 && !newQ.value.explanation
+  } else {
+    newErrors.value.explanation = false
+  }
+  return !newErrors.value.content && !newErrors.value.duplicate && !newErrors.value.options && !newErrors.value.correctAnswers && !newErrors.value.explanation
+}
+
 function addQuestion() {
-  if (!newQ.value.content || !newQ.value.type) return
+  if (!validateNew()) return
   const id = Date.now().toString() + Math.random().toString(36).slice(2)
   const options = newQ.value.type !== 'short-text' ? optionsInput.value.split(',').map(o => o.trim()).filter(Boolean) : []
   const correctAnswers = answersInput.value.split(',').map(a => a.trim()).filter(Boolean)
   questions.value.push({
     id,
     type: newQ.value.type as QuestionType,
-    content: newQ.value.content,
+    content: newQ.value.content!,
     options,
     correctAnswers,
     explanation: newQ.value.explanation || '',
+    _error: undefined,
   })
   emit('update:modelValue', questions.value)
   newQ.value = { type: 'multiple-choice', content: '', options: [], correctAnswers: [], explanation: '' }
   optionsInput.value = ''
   answersInput.value = ''
 }
+
+// Per-question validation for the list
+watch(questions, (val) => {
+  val.forEach(q => {
+    let error = ''
+    if (!q.content) error = 'Question content is required.'
+    else if (val.filter(qq => qq.content.trim().toLowerCase() === q.content.trim().toLowerCase()).length > 1) error = 'Duplicate question content is not allowed.'
+    else if (q.type !== 'short-text') {
+      if (!q.options || q.options.length < 2) error = 'At least two options are required.'
+      else if (new Set(q.options).size !== q.options.length) error = 'Options must be unique.'
+      const incorrectOpts = q.options.filter(opt => !q.correctAnswers.includes(opt))
+      if (incorrectOpts.length > 0 && !q.explanation) error = 'Explanation is required if there are incorrect options.'
+    }
+    if (!q.correctAnswers || q.correctAnswers.length < 1) error = 'At least one correct answer is required.'
+    q._error = error
+  })
+}, { immediate: true, deep: true })
 </script>
 
 <style scoped>
