@@ -380,8 +380,8 @@ watch(showUserManagement, (val: boolean) => {
 })
 
 // Chart rendering logic
-watch([showAnalytics, quizzes, results], ([show]: [boolean]) => {
-  if (show) {
+watch([showAnalytics, quizzes, results], () => {
+  if (showAnalytics.value) {
     nextTick(() => {
       quizzes.value.forEach((quiz: Quiz) => {
         const ctx = document.getElementById('chart-' + quiz.id) as HTMLCanvasElement
@@ -393,7 +393,6 @@ watch([showAnalytics, quizzes, results], ([show]: [boolean]) => {
             const idx = Math.round((r.score / quiz.questions.length) * 10)
             bins[Math.min(idx, 10)]++
           })
-          // @ts-expect-error - Chart.js types may not be available
           import('chart.js/auto').then(({ default: Chart }) => {
             chartInstances[quiz.id] = new Chart(ctx, {
               type: 'bar',
@@ -411,7 +410,6 @@ watch([showAnalytics, quizzes, results], ([show]: [boolean]) => {
           if (chartInstances['q' + quiz.id]) chartInstances['q' + quiz.id].destroy()
           const labels = quiz.questions.map((q, i) => `Q${i + 1}`)
           const data = quiz.questions.map(q => questionCorrectPct(quiz.id, q.id))
-          // @ts-expect-error - Chart.js types may not be available
           import('chart.js/auto').then(({ default: Chart }) => {
             chartInstances['q' + quiz.id] = new Chart(ctxQ, {
               type: 'bar',

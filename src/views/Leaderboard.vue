@@ -13,10 +13,10 @@
       >
         <div>
           <span class="font-semibold text-lg">{{
-            userInfo(entry.userId)?.name || entry.userId
+            userInfo(entry.userId)?.displayName || entry.userId
           }}</span>
           <span v-if="userInfo(entry.userId)" class="text-xs text-gray-500">
-            ({{ userInfo(entry.userId).email }})</span
+            ({{ userInfo(entry.userId)?.email }})</span
           >
         </div>
         <div class="text-blue-700 dark:text-blue-300 font-mono font-bold">
