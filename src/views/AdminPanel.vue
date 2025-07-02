@@ -58,6 +58,13 @@
       <div class="bg-white dark:bg-gray-800 p-6 rounded shadow max-w-xl w-full relative overflow-auto">
         <button class="absolute top-2 right-2 text-gray-500 hover:text-gray-800 dark:hover:text-gray-200" @click="showUserMgmt = false">&times;</button>
         <h2 class="text-xl font-bold mb-4">User Management</h2>
+        <form v-if="isAdmin" @submit.prevent="inviteUser" class="mb-4 flex flex-wrap gap-2 items-end">
+          <input v-model="inviteName" type="text" placeholder="Name" class="input w-32" />
+          <input v-model="inviteEmail" type="email" placeholder="Email" class="input w-48" required />
+          <button type="submit" class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700">Invite User</button>
+          <span v-if="inviteError" class="text-red-600 text-xs ml-2">{{ inviteError }}</span>
+          <span v-if="inviteLink" class="text-green-600 text-xs ml-2">Invite Link: <a :href="inviteLink" target="_blank" class="underline">Open</a></span>
+        </form>
         <div v-if="userMgmtLoading" class="text-gray-500 mb-2">Loading users...</div>
         <div v-if="userMgmtError" class="text-red-600 mb-2">{{ userMgmtError }}</div>
         <table v-if="!userMgmtLoading" class="w-full text-sm mb-4">
@@ -119,9 +126,11 @@ const inviteEmail = ref('')
 const invitePassword = ref('')
 const inviteName = ref('')
 const inviteError = ref('')
+const inviteLink = ref('')
 const users = ref([])
 const userMgmtLoading = ref(false)
 const userMgmtError = ref('')
+const isAdmin = computed(() => user.value && user.value.isAdmin)
 
 function onCreate() {
   editingQuiz.value = null
@@ -357,12 +366,19 @@ function userInfo(userId: string) {
 
 async function inviteUser() {
   inviteError.value = ''
+  inviteLink.value = ''
   try {
-    await signup(inviteEmail.value, invitePassword.value, inviteName.value)
+    const token = user.value ? await user.value.getIdToken() : ''
+    const res = await fetch('/api/users/invite', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ email: inviteEmail.value, name: inviteName.value })
+    })
+    if (!res.ok) throw new Error(await res.text())
+    const data = await res.json()
+    inviteLink.value = data.inviteLink
     inviteEmail.value = ''
-    invitePassword.value = ''
     inviteName.value = ''
-    alert('User created and invited!')
   } catch (e: any) {
     inviteError.value = e.message || 'Failed to invite user.'
   }

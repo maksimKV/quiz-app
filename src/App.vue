@@ -11,7 +11,7 @@ import TheWelcome from './components/TheWelcome.vue'
       <router-link to="/profile" class="ml-auto font-bold text-green-700 dark:text-green-300">Profile</router-link>
     </nav>
     <router-view />
-  </div>
+    </div>
 </template>
 
 <style scoped>

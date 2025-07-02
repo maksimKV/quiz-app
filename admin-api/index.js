@@ -1,6 +1,7 @@
 const express = require('express');
 const admin = require('firebase-admin');
 const cors = require('cors');
+const nodemailer = require('nodemailer');
 
 // Initialize Firebase Admin SDK
 admin.initializeApp({
@@ -10,6 +11,17 @@ admin.initializeApp({
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+// Configure nodemailer SMTP transport
+const transporter = nodemailer.createTransport({
+  host: process.env.SMTP_HOST,
+  port: process.env.SMTP_PORT,
+  secure: process.env.SMTP_SECURE === 'true',
+  auth: {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS,
+  },
+});
 
 // Middleware to check admin token (to be implemented)
 async function requireAdmin(req, res, next) {
@@ -64,6 +76,33 @@ app.post('/api/users/demote', requireAdmin, async (req, res) => {
 app.delete('/api/users/:uid', requireAdmin, async (req, res) => {
   await admin.auth().deleteUser(req.params.uid);
   res.json({ success: true });
+});
+
+// Invite user (send password reset link)
+app.post('/api/users/invite', requireAdmin, async (req, res) => {
+  const { email, name } = req.body;
+  try {
+    let userRecord;
+    try {
+      userRecord = await admin.auth().getUserByEmail(email);
+    } catch (e) {
+      userRecord = await admin.auth().createUser({ email, displayName: name });
+    }
+    if (name && userRecord.displayName !== name) {
+      await admin.auth().updateUser(userRecord.uid, { displayName: name });
+    }
+    const link = await admin.auth().generatePasswordResetLink(email);
+    // Send invite email
+    await transporter.sendMail({
+      from: process.env.SMTP_FROM || process.env.SMTP_USER,
+      to: email,
+      subject: 'You are invited to Quiz App',
+      text: `Hello${name ? ' ' + name : ''},\n\nYou have been invited to join Quiz App. Click the link below to set your password and complete your registration:\n\n${link}\n\nIf you did not expect this, you can ignore this email.`,
+    });
+    res.json({ success: true, inviteLink: link });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
 });
 
 const PORT = process.env.PORT || 4000;

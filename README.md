@@ -27,3 +27,18 @@ npm run dev
 ```sh
 npm run build
 ```
+
+## Email Invites (Admin)
+
+The backend now supports sending email invites when an admin invites a user. This uses Nodemailer and SMTP. You must set the following environment variables in your deployment or `.env` file:
+
+```
+SMTP_HOST=your.smtp.host
+SMTP_PORT=587 # or 465 for SSL
+SMTP_SECURE=false # true if using port 465
+SMTP_USER=your_smtp_username
+SMTP_PASS=your_smtp_password
+SMTP_FROM=Quiz App <noreply@yourdomain.com> # optional, defaults to SMTP_USER
+```
+
+When an admin invites a user, the backend will send an email with a password setup link.
