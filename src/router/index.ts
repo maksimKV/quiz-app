@@ -12,6 +12,11 @@ export const routes: RouteRecordRaw[] = [
     component: () => import('../views/QuizPlayer.vue'),
   },
   {
+    path: '/profile',
+    name: 'UserProfile',
+    component: () => import('../components/UserProfile.vue'),
+  },
+  {
     path: '/',
     redirect: '/player',
   },

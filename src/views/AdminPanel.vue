@@ -58,7 +58,9 @@
       <div class="bg-white dark:bg-gray-800 p-6 rounded shadow max-w-xl w-full relative overflow-auto">
         <button class="absolute top-2 right-2 text-gray-500 hover:text-gray-800 dark:hover:text-gray-200" @click="showUserMgmt = false">&times;</button>
         <h2 class="text-xl font-bold mb-4">User Management</h2>
-        <table class="w-full text-sm mb-4">
+        <div v-if="userMgmtLoading" class="text-gray-500 mb-2">Loading users...</div>
+        <div v-if="userMgmtError" class="text-red-600 mb-2">{{ userMgmtError }}</div>
+        <table v-if="!userMgmtLoading" class="w-full text-sm mb-4">
           <thead>
             <tr>
               <th class="text-left">Name</th>
@@ -68,8 +70,8 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="u in users" :key="u.id">
-              <td>{{ u.name }}</td>
+            <tr v-for="u in users" :key="u.uid">
+              <td>{{ u.displayName || u.email }}</td>
               <td>{{ u.email }}</td>
               <td>
                 <span v-if="u.isAdmin" class="text-green-700 font-semibold">Admin</span>
@@ -89,7 +91,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, computed } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useQuizStore } from '../store/quiz'
 import { useUserResultStore } from '../store/userResult'
@@ -98,6 +100,7 @@ import AdminQuizList from '../components/AdminQuizList.vue'
 import AdminQuizForm from '../components/AdminQuizForm.vue'
 import type { Quiz } from '../types/quiz'
 import { nextTick } from 'vue'
+import { useAuth } from '../composables/useAuth'
 
 const quizStore = useQuizStore()
 const userResultStore = useUserResultStore()
@@ -105,18 +108,20 @@ const authStore = useAuthStore()
 const { quizzes } = storeToRefs(quizStore)
 const { results } = storeToRefs(userResultStore)
 const { user } = storeToRefs(authStore)
+const { signup } = useAuth()
 
 const showForm = ref(false)
 const editingQuiz = ref<Quiz | null>(null)
 const showAnalytics = ref(false)
 const showLeaderboard = ref(false)
 const showUserMgmt = ref(false)
-const users = ref([
-  // Example/mock users; replace with real user list from backend or auth store
-  { id: '1', name: 'Alice', email: 'alice@example.com', isAdmin: true },
-  { id: '2', name: 'Bob', email: 'bob@example.com', isAdmin: false },
-  { id: '3', name: 'Carol', email: 'carol@example.com', isAdmin: false },
-])
+const inviteEmail = ref('')
+const invitePassword = ref('')
+const inviteName = ref('')
+const inviteError = ref('')
+const users = ref([])
+const userMgmtLoading = ref(false)
+const userMgmtError = ref('')
 
 function onCreate() {
   editingQuiz.value = null
@@ -350,15 +355,64 @@ function userInfo(userId: string) {
   return null
 }
 
-function promote(u) {
-  u.isAdmin = true
-}
-function demote(u) {
-  u.isAdmin = false
-}
-function deleteUser(u) {
-  if (confirm(`Delete user ${u.name}?`)) {
-    users.value = users.value.filter(user => user.id !== u.id)
+async function inviteUser() {
+  inviteError.value = ''
+  try {
+    await signup(inviteEmail.value, invitePassword.value, inviteName.value)
+    inviteEmail.value = ''
+    invitePassword.value = ''
+    inviteName.value = ''
+    alert('User created and invited!')
+  } catch (e: any) {
+    inviteError.value = e.message || 'Failed to invite user.'
   }
 }
+
+async function fetchUsers() {
+  userMgmtLoading.value = true
+  userMgmtError.value = ''
+  try {
+    const token = user.value ? await user.value.getIdToken() : ''
+    const res = await fetch('/api/users', {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+    if (!res.ok) throw new Error(await res.text())
+    users.value = await res.json()
+  } catch (e: any) {
+    userMgmtError.value = e.message || 'Failed to fetch users.'
+  } finally {
+    userMgmtLoading.value = false
+  }
+}
+
+async function promote(u) {
+  await userMgmtAction('/api/users/promote', { uid: u.uid })
+}
+async function demote(u) {
+  await userMgmtAction('/api/users/demote', { uid: u.uid })
+}
+async function deleteUser(u) {
+  if (!confirm(`Delete user ${u.displayName || u.email}?`)) return
+  await userMgmtAction(`/api/users/${u.uid}`, null, 'DELETE')
+}
+async function userMgmtAction(url, body, method = 'POST') {
+  userMgmtError.value = ''
+  try {
+    const token = user.value ? await user.value.getIdToken() : ''
+    const res = await fetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: body ? JSON.stringify(body) : undefined
+    })
+    if (!res.ok) throw new Error(await res.text())
+    await fetchUsers()
+  } catch (e: any) {
+    userMgmtError.value = e.message || 'Action failed.'
+  }
+}
+
+onMounted(() => {
+  if (showUserMgmt.value) fetchUsers()
+})
+watch(showUserMgmt, (val) => { if (val) fetchUsers() })
 </script> 

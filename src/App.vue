@@ -4,17 +4,14 @@ import TheWelcome from './components/TheWelcome.vue'
 </script>
 
 <template>
-  <header>
-    <img alt="Vue logo" class="logo" src="./assets/logo.svg" width="125" height="125" />
-
-    <div class="wrapper">
-      <HelloWorld msg="You did it!" />
-    </div>
-  </header>
-
-  <main>
-    <TheWelcome />
-  </main>
+  <div>
+    <nav class="flex items-center gap-4 p-4 bg-gray-100 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
+      <router-link to="/player" class="font-bold text-blue-700 dark:text-blue-300">Quiz Player</router-link>
+      <router-link to="/admin" class="font-bold text-purple-700 dark:text-purple-300">Admin Panel</router-link>
+      <router-link to="/profile" class="ml-auto font-bold text-green-700 dark:text-green-300">Profile</router-link>
+    </nav>
+    <router-view />
+  </div>
 </template>
 
 <style scoped>
