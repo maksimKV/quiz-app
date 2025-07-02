@@ -42,3 +42,20 @@ SMTP_FROM=Quiz App <noreply@yourdomain.com> # optional, defaults to SMTP_USER
 ```
 
 When an admin invites a user, the backend will send an email with a password setup link.
+
+## Backend (admin-api) Setup
+
+1. Install dependencies:
+
+```sh
+cd admin-api
+npm install
+```
+
+2. Start the backend server:
+
+```sh
+npm start
+```
+
+The backend will run on the default port (e.g., 3000). Configure environment variables in `admin-api/.env` as needed.
