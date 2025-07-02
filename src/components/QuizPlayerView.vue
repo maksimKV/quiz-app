@@ -1,5 +1,6 @@
 <template>
   <div v-if="currentQuiz" class="max-w-2xl mx-auto">
+    <div v-if="preview" class="mb-4 p-3 bg-yellow-100 text-yellow-800 rounded-lg text-center font-bold border border-yellow-300 shadow">Preview Mode – Results will not be saved</div>
     <h2 class="text-xl font-bold mb-4">{{ currentQuiz.title }}</h2>
     <div class="mb-2 text-gray-500">{{ currentQuiz.description }}</div>
     <div class="mb-4 text-xs">
@@ -95,7 +96,7 @@ import { quizService } from '../services/quizService'
 import { useQuizTimer } from '../composables/useQuizTimer'
 import { useQuizScoring } from '../composables/useQuizScoring'
 
-const props = defineProps<{ quiz: Quiz, reviewAnswers?: Record<string, any>, forceReview?: boolean }>()
+const props = defineProps<{ quiz: Quiz, reviewAnswers?: Record<string, any>, forceReview?: boolean, preview?: boolean }>()
 const emit = defineEmits(['submit'])
 
 const userResultStore = useUserResultStore()
@@ -126,7 +127,7 @@ const answers = computed({
 const _answers = ref<Record<string, any>>({})
 
 // Timer
-const timerEnabled = computed(() => !!props.quiz.timer)
+const timerEnabled = computed(() => !!props.quiz.timer && !props.preview)
 const { timeLeft, minutes, seconds, start: startTimer, stop: stopTimer, reset: resetTimer } = useQuizTimer(props.quiz.timer || 0, () => {
   if (!showReview.value) submit()
 })
@@ -203,30 +204,31 @@ async function submit() {
   showConfirm.value = false
   stopTimer()
 
-  if (!props.forceReview) {
-    saving.value = true
-    error.value = null
-    try {
-      const totalScore = perQuestionScores.value.reduce((acc, score) => acc + score, 0)
-      const maxScore = currentQuiz.value.questions.length
-      const percentage = Math.round((totalScore / maxScore) * 100)
+  // Skip saving results in preview or forceReview mode
+  if (props.preview || props.forceReview) return
 
-      await userResultStore.addResult({
-        quizId: currentQuiz.value.id,
-        userId: authStore.user?.uid || authStore.user?.id || '',
-        answers: answers.value,
-        score: totalScore,
-        maxScore,
-        percentage,
-        completedAt: new Date().toISOString(),
-        timeSpent: props.quiz.timer ? props.quiz.timer - timeLeft.value : undefined
-      })
-    } catch (err) {
-      error.value = (err as Error).message
-      console.error('Failed to save quiz results:', err)
-    } finally {
-      saving.value = false
-    }
+  saving.value = true
+  error.value = null
+  try {
+    const totalScore = perQuestionScores.value.reduce((acc, score) => acc + score, 0)
+    const maxScore = currentQuiz.value.questions.length
+    const percentage = Math.round((totalScore / maxScore) * 100)
+
+    await userResultStore.addResult({
+      quizId: currentQuiz.value.id,
+      userId: authStore.user?.uid || authStore.user?.id || '',
+      answers: answers.value,
+      score: totalScore,
+      maxScore,
+      percentage,
+      completedAt: new Date().toISOString(),
+      timeSpent: props.quiz.timer ? props.quiz.timer - timeLeft.value : undefined
+    })
+  } catch (err) {
+    error.value = (err as Error).message
+    console.error('Failed to save quiz results:', err)
+  } finally {
+    saving.value = false
   }
 }
 

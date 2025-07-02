@@ -27,6 +27,10 @@
             @click="handleDelete(quiz.id)"
             :disabled="loading"
           >Delete</button>
+          <button 
+            class="px-3 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600" 
+            @click="$emit('preview', quiz)"
+          >Preview</button>
         </div>
       </li>
     </ul>

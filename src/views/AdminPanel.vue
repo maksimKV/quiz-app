@@ -22,7 +22,11 @@
       <button class="px-4 py-2 bg-pink-600 text-white rounded-lg shadow hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-400 transition" @click="showUserManagement = true">User Management</button>
     </div>
     <div class="mt-8">
-      <AdminQuizList v-if="!showQuizForm" @create="onCreate" @edit="editQuiz" @delete="deleteQuiz" />
+      <AdminQuizList v-if="!showQuizForm && !previewQuiz" @create="onCreate" @edit="editQuiz" @delete="deleteQuiz" @preview="onPreview" />
+      <div v-else-if="previewQuiz">
+        <QuizPlayerView :quiz="previewQuiz" :preview="true" />
+        <button class="mt-4 px-6 py-2 bg-gray-600 text-white rounded-lg shadow hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-400 transition" @click="exitPreview">Exit Preview</button>
+      </div>
       <AdminQuizForm
         v-else
         :model-value="selectedQuiz"
@@ -73,6 +77,7 @@ import AdminQuizForm from '../components/AdminQuizForm.vue'
 import AdminQuestionBuilder from '../components/AdminQuestionBuilder.vue'
 import AdminAnalyticsModal from '../components/AdminAnalyticsModal.vue'
 import AdminUserManagementModal from '../components/AdminUserManagementModal.vue'
+import QuizPlayerView from '../components/QuizPlayerView.vue'
 import type { Quiz } from '../types/quiz'
 import type { Chart } from 'chart.js'
 import type { User } from '../types/user'
@@ -104,6 +109,7 @@ const userMgmtError = ref('')
 const isAdmin = computed(() => !!(user.value && user.value.isAdmin))
 const globalError = ref('')
 const globalLoading = ref(false)
+const previewQuiz = ref<Quiz | null>(null)
 
 // Chart instances
 let chartInstances: Record<string, Chart> = {}
@@ -290,6 +296,14 @@ async function userMgmtAction(url: string, body: any, method = 'POST') {
 async function promote(u: any) { await userMgmtAction('/api/users/promote', { uid: u.uid }) }
 async function demote(u: any) { await userMgmtAction('/api/users/demote', { uid: u.uid }) }
 async function deleteUser(u: any) { if (!confirm(`Delete user ${u.displayName || u.email}?`)) return; await userMgmtAction(`/api/users/${u.uid}`, null, 'DELETE') }
+
+function onPreview(quiz: Quiz) {
+  previewQuiz.value = quiz
+}
+
+function exitPreview() {
+  previewQuiz.value = null
+}
 
 onMounted(async () => {
   // Initialize quiz subscription (this will automatically update quizzes)
