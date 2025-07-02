@@ -64,7 +64,7 @@
             </div>
             <div v-if="q.type !== 'short-text'">
               <div v-for="opt in q.options" :key="opt" class="ml-4 text-sm">
-                <span :class="optionClass(q, opt, idx)">{{ opt }}</span>
+                <span :class="optionClass(q, opt)" >{{ opt }}</span>
                 <span v-if="isSelected(q, opt)"> (Your answer)</span>
                 <span v-if="q.correctAnswers.includes(opt)"> (Correct)</span>
               </div>
@@ -173,7 +173,7 @@ const partialExplanations = computed(() => currentQuiz.value.questions.map((q) =
   getPartialExplanation(q, answers.value[q.id])
 ))
 
-function scoreClass(score, q) {
+function scoreClass(score: number, q: Question) {
   if (q.type === 'multiple-answer' && score > 0 && score < 1) return 'text-yellow-600 font-bold'
   if (score >= 1) return 'text-green-700 font-bold'
   if (score == 0) return 'text-red-600 font-bold'

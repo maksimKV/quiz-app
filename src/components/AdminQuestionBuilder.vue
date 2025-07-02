@@ -160,7 +160,7 @@ watch(questions, (val) => {
     else if (q.type !== 'short-text') {
       if (!q.options || q.options.length < 2) error = 'At least two options are required.'
       else if (new Set(q.options).size !== q.options.length) error = 'Options must be unique.'
-      const incorrectOpts = q.options.filter(opt => !q.correctAnswers.includes(opt))
+      const incorrectOpts = (q.options ?? []).filter(opt => !q.correctAnswers.includes(opt))
       if (incorrectOpts.length > 0 && !q.explanation) error = 'Explanation is required if there are incorrect options.'
     }
     if (!q.correctAnswers || q.correctAnswers.length < 1) error = 'At least one correct answer is required.'

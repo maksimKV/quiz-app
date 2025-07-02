@@ -48,19 +48,20 @@ export function useQuizAnalytics(quizzes: Quiz[], results: UserResult[]) {
   }
 
   function mostMissedOption(quizId: string, questionId: string) {
-    const quiz = quizzes.find(q => q.id === quizId)
+    const quiz = quizzes.find(qz => qz.id === quizId)
     if (!quiz) return ''
-    const q = quiz.questions.find(q => q.id === questionId)
-    if (!q || !q.options) return ''
+    const question = quiz.questions.find(qq => qq.id === questionId)
+    if (!question || !question.options) return ''
     const quizResults = results.filter(r => r.quizId === quizId)
     if (!quizResults.length) return ''
     const missCounts: Record<string, number> = {}
-    q.options.forEach(opt => { missCounts[opt] = 0 })
+    const options: string[] = question.options;
+    options.forEach((opt: string) => { missCounts[opt] = 0; })
     quizResults.forEach(r => {
-      if (q.type === 'multiple-choice' || q.type === 'multiple-answer') {
-        const userAns = q.type === 'multiple-answer' ? (Array.isArray(r.answers[questionId]) ? r.answers[questionId] : []) : (typeof r.answers[questionId] === 'string' ? [r.answers[questionId]] : [])
-        q.options.forEach(opt => {
-          if (!userAns.includes(opt) && q.correctAnswers.includes(opt)) missCounts[opt]++
+      if (question.type === 'multiple-choice' || question.type === 'multiple-answer') {
+        const userAns = question.type === 'multiple-answer' ? (Array.isArray(r.answers[questionId]) ? r.answers[questionId] : []) : (typeof r.answers[questionId] === 'string' ? [r.answers[questionId]] : [])
+        options.forEach((opt: string) => {
+          if (!userAns.includes(opt) && question.correctAnswers.includes(opt)) missCounts[opt]++
         })
       }
     })

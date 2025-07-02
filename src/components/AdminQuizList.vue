@@ -47,7 +47,7 @@ const quizStore = useQuizStore()
 const { quizzes, loading, error } = storeToRefs(quizStore)
 
 onMounted(async () => {
-  await quizStore.fetchQuizzes()
+  // await quizStore.fetchQuizzes()
 })
 
 const handleDelete = async (id: string) => {

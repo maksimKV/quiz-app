@@ -64,7 +64,7 @@ router.beforeEach((to, from, next) => {
 
   function proceed() {
     const isAuthenticated = !!user.value
-    const isAdmin = user.value && (user.value.isAdmin === true)
+    const isAdmin = user.value && 'isAdmin' in user.value && (user.value.isAdmin === true)
     if (to.path === '/login') {
       if (isAuthenticated) {
         next('/player')

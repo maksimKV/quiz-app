@@ -75,7 +75,6 @@ onMounted(async () => {
   loading.value = true
   error.value = null
   try {
-    await quizStore.fetchQuizzes()
     results.value = await userResultStore.getResultsByUser(props.userId)
   } catch (err) {
     error.value = (err as Error).message
@@ -114,7 +113,7 @@ function showReview(result: UserResult) {
 
 const quizForReview = computed(() => {
   if (!reviewResult.value) return null
-  const quiz = quizzes.value.find(q => q.id === reviewResult.value.quizId)
+  const quiz = quizzes.value.find(q => q.id === reviewResult.value?.quizId)
   if (!quiz) return null
   // Return a copy with questions, but don't mutate the original
   return JSON.parse(JSON.stringify(quiz))

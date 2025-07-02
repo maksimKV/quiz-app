@@ -24,7 +24,7 @@
       </label>
     </div>
     <div>
-      <AdminQuestionBuilder v-model="form.questions" :disabled="loading" />
+      <AdminQuestionBuilder v-model="form.questions || []" :disabled="loading" />
       <div v-if="$v.form.questions.$error" class="text-red-500 text-xs mt-1">At least one question is required.</div>
     </div>
     <div class="flex gap-2 mt-6">

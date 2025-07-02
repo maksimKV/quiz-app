@@ -27,12 +27,7 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
 import { useQuizStore } from '../store/quiz'
-import { onMounted } from 'vue'
 
 const quizStore = useQuizStore()
 const { quizzes, loading, error } = storeToRefs(quizStore)
-
-onMounted(async () => {
-  await quizStore.fetchPublishedQuizzes()
-})
 </script> 

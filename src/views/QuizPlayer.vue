@@ -66,13 +66,13 @@ function onSubmit(answers: Record<string, any>) {
   // Save result to userResult store
   if (user.value && selectedQuiz.value) {
     userResultStore.addResult({
-      id: Date.now().toString(),
       userId: user.value.id,
       quizId: selectedQuiz.value.id,
       score: score.value,
+      maxScore: selectedQuiz.value.questions.length,
+      percentage: (score.value / selectedQuiz.value.questions.length) * 100,
       answers,
-      startedAt: new Date().toISOString(),
-      finishedAt: new Date().toISOString(),
+      completedAt: new Date().toISOString(),
     })
   }
   showResults.value = true

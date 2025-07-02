@@ -92,7 +92,7 @@ const userResultStore = useUserResultStore()
 const authStore = useAuthStore()
 const { quizzes } = storeToRefs(quizStore)
 const { results } = storeToRefs(userResultStore)
-const { user } = storeToRefs(authStore)
+const { user, firebaseUser } = storeToRefs(authStore)
 
 const { attempts, avgScore, avgTime, questionCorrectPct, mostMissedOption, leaderboard } = useQuizAnalytics(quizzes.value, results.value)
 
@@ -109,7 +109,7 @@ const inviteLink = ref('')
 const users = ref([])
 const userMgmtLoading = ref(false)
 const userMgmtError = ref('')
-const isAdmin = computed(() => user.value && user.value.isAdmin)
+const isAdmin = computed(() => !!(user.value && user.value.isAdmin))
 const globalError = ref('')
 const globalLoading = ref(false)
 
@@ -136,7 +136,8 @@ function onSave(quiz: Quiz) {
   if (selectedQuiz.value) {
     quizStore.updateQuiz(quiz)
   } else {
-    quizStore.addQuiz({ ...quiz, id: Date.now().toString(), questions: quiz.questions || [] })
+    const { id, ...quizData } = quiz
+    quizStore.addQuiz({ ...quizData, questions: quiz.questions || [] })
   }
   showQuizForm.value = false
 }
@@ -224,7 +225,10 @@ async function inviteUser() {
   globalError.value = ''
   globalLoading.value = true
   try {
-    const token = user.value.value ? await user.value.value.getIdToken() : ''
+    let token = ''
+    if (firebaseUser.value) {
+      token = await firebaseUser.value.getIdToken()
+    }
     const res = await fetch('/api/users/invite', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
@@ -249,7 +253,10 @@ async function fetchUsers() {
   globalError.value = ''
   globalLoading.value = true
   try {
-    const token = user.value.value ? await user.value.value.getIdToken() : ''
+    let token = ''
+    if (firebaseUser.value) {
+      token = await firebaseUser.value.getIdToken()
+    }
     const res = await fetch('/api/users', {
       headers: { Authorization: `Bearer ${token}` }
     })
@@ -264,12 +271,15 @@ async function fetchUsers() {
   }
 }
 
-async function userMgmtAction(url, body, method = 'POST') {
+async function userMgmtAction(url: string, body: any, method = 'POST') {
   userMgmtError.value = ''
   globalError.value = ''
   globalLoading.value = true
   try {
-    const token = user.value.value ? await user.value.value.getIdToken() : ''
+    let token = ''
+    if (firebaseUser.value) {
+      token = await firebaseUser.value.getIdToken()
+    }
     const res = await fetch(url, {
       method,
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
@@ -285,9 +295,9 @@ async function userMgmtAction(url, body, method = 'POST') {
   }
 }
 
-async function promote(u) { await userMgmtAction('/api/users/promote', { uid: u.uid }) }
-async function demote(u) { await userMgmtAction('/api/users/demote', { uid: u.uid }) }
-async function deleteUser(u) { if (!confirm(`Delete user ${u.displayName || u.email}?`)) return; await userMgmtAction(`/api/users/${u.uid}`, null, 'DELETE') }
+async function promote(u: any) { await userMgmtAction('/api/users/promote', { uid: u.uid }) }
+async function demote(u: any) { await userMgmtAction('/api/users/demote', { uid: u.uid }) }
+async function deleteUser(u: any) { if (!confirm(`Delete user ${u.displayName || u.email}?`)) return; await userMgmtAction(`/api/users/${u.uid}`, null, 'DELETE') }
 
 onMounted(async () => {
   // Initialize quiz subscription (this will automatically update quizzes)

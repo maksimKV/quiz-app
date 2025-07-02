@@ -17,10 +17,11 @@ const unsubscribe = onAuthStateChanged(auth, (firebaseUserObj) => {
   if (firebaseUserObj) {
     authStore.login({
       id: firebaseUserObj.uid,
+      uid: firebaseUserObj.uid,
       name: firebaseUserObj.displayName || firebaseUserObj.email || '',
       email: firebaseUserObj.email || '',
       isAdmin: false // You can extend this with custom claims or Firestore roles
-    })
+    }, firebaseUserObj)
   } else {
     authStore.logout()
   }
@@ -51,6 +52,13 @@ async function login(email: string, password: string) {
       error.value = 'Please verify your email before logging in. You can resend the verification email below.'
       throw new Error(error.value)
     }
+    authStore.login({
+      id: cred.user.uid,
+      uid: cred.user.uid,
+      name: cred.user.displayName || cred.user.email || '',
+      email: cred.user.email || '',
+      isAdmin: false // You can extend this with custom claims or Firestore roles
+    }, cred.user)
     return cred.user
   } catch (e: any) {
     error.value = e.message
