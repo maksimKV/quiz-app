@@ -1,6 +1,6 @@
 import { ref, onUnmounted } from 'vue'
 import { auth } from '../firebase'
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile, User, sendEmailVerification } from 'firebase/auth'
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile, User, sendEmailVerification, getIdTokenResult } from 'firebase/auth'
 import { useAuthStore } from '../store/auth'
 
 export function useAuth() {
@@ -11,18 +11,21 @@ export function useAuth() {
 
   const authStore = useAuthStore()
 
-  const unsubscribe = onAuthStateChanged(auth, (firebaseUserObj: User | null) => {
+  const unsubscribe = onAuthStateChanged(auth, async (firebaseUserObj: User | null) => {
     firebaseUser.value = firebaseUserObj
     user.value = firebaseUserObj
     loading.value = false
     if (firebaseUserObj) {
+      const idTokenResult = await getIdTokenResult(firebaseUserObj)
+      const isAdmin = !!idTokenResult.claims.isAdmin
       authStore.login({
         id: firebaseUserObj.uid,
         uid: firebaseUserObj.uid,
         name: firebaseUserObj.displayName || firebaseUserObj.email || '',
         email: firebaseUserObj.email || '',
-        isAdmin: false // You can extend this with custom claims or Firestore roles
+        isAdmin
       }, firebaseUserObj)
+      user.value = { ...firebaseUserObj, isAdmin } as User & { isAdmin: boolean }
     } else {
       authStore.logout()
     }
@@ -50,13 +53,16 @@ export function useAuth() {
     error.value = null
     try {
       const cred = await signInWithEmailAndPassword(auth, email, password)
+      const idTokenResult = await getIdTokenResult(cred.user)
+      const isAdmin = !!idTokenResult.claims.isAdmin
       authStore.login({
         id: cred.user.uid,
         uid: cred.user.uid,
         name: cred.user.displayName || cred.user.email || '',
         email: cred.user.email || '',
-        isAdmin: false // You can extend this with custom claims or Firestore roles
+        isAdmin
       }, cred.user)
+      user.value = { ...cred.user, isAdmin } as User & { isAdmin: boolean }
       return cred.user
     } catch (e: any) {
       error.value = e.message
