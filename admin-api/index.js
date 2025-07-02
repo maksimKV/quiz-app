@@ -6,9 +6,24 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const morgan = require('morgan');
 
+console.log("GOOGLE_CREDENTIALS present:", !!process.env.GOOGLE_CREDENTIALS);
+
+let serviceAccount;
+if (process.env.GOOGLE_CREDENTIALS) {
+  try {
+    serviceAccount = JSON.parse(process.env.GOOGLE_CREDENTIALS);
+    console.log("GOOGLE_CREDENTIALS is valid JSON.");
+  } catch (e) {
+    console.error("GOOGLE_CREDENTIALS is not valid JSON!", e);
+    process.exit(1);
+  }
+} else {
+  serviceAccount = require('./serviceAccountKey.json');
+}
+
 // Initialize Firebase Admin SDK
 admin.initializeApp({
-  credential: admin.credential.applicationDefault(),
+  credential: admin.credential.cert(serviceAccount)
 });
 
 const app = express();
@@ -25,13 +40,16 @@ app.use(express.json());
 
 // Configure nodemailer SMTP transport
 const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: process.env.SMTP_PORT,
-  secure: process.env.SMTP_SECURE === 'true',
+  host: 'smtp.gmail.com',
+  port: 587,
+  secure: false,
   auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
+    user: process.env.SMTP_USER, // your Gmail address
+    pass: process.env.SMTP_PASS  // your Gmail App Password
   },
+  tls: {
+    rejectUnauthorized: false // Allow self-signed certificates (development only)
+  }
 });
 
 // Middleware to check admin token (to be implemented)
@@ -188,7 +206,7 @@ app.post('/api/register', async (req, res) => {
       to: email,
       subject: 'Verify your email for Quiz App',
       text: `Hello${name ? ' ' + name : ''},\n\nThank you for registering for Quiz App. Please verify your email by clicking the link below:\n\n${link}\n\nIf you did not expect this, you can ignore this email.`,
-      html: `<div style=\"font-family: Arial, sans-serif; background: #f9fafb; padding: 32px;\"><div style=\"max-width: 480px; margin: auto; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px #0001; padding: 32px;\"><h2 style=\"color: #2563eb; margin-bottom: 16px;\">Welcome to <span style='color:#9333ea'>Quiz App</span>!</h2><p style=\"font-size: 16px; color: #222;\">Hello${name ? ' ' + name : ''},</p><p style=\"font-size: 16px; color: #222;\">Thank you for registering for <b>Quiz App</b>. Please verify your email by clicking the button below:</p><a href=\"${link}\" style=\"display: inline-block; margin: 24px 0; padding: 12px 24px; background: linear-gradient(90deg,#2563eb,#9333ea); color: #fff; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 16px;\">Verify Email</a><p style=\"font-size: 14px; color: #666;\">If the button doesn't work, copy and paste this link into your browser:</p><p style=\"font-size: 13px; color: #666; word-break: break-all;\">${link}</p><hr style=\"margin: 24px 0; border: none; border-top: 1px solid #eee;\" /><p style=\"font-size: 12px; color: #aaa;\">If you did not expect this, you can ignore this email.</p></div></div>`
+      html: `<div style="font-family: Arial, sans-serif; background: #f9fafb; padding: 32px;"><div style="max-width: 480px; margin: auto; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px #0001; padding: 32px;"><h2 style="color: #2563eb; margin-bottom: 16px;">Welcome to <span style='color:#9333ea'>Quiz App</span>!</h2><p style="font-size: 16px; color: #222;">Hello${name ? ' ' + name : ''},</p><p style="font-size: 16px; color: #222;">Thank you for registering for <b>Quiz App</b>. Please verify your email by clicking the button below:</p><a href="${link}" style="display: inline-block; margin: 24px 0; padding: 12px 24px; background: linear-gradient(90deg,#2563eb,#9333ea); color: #fff; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 16px;">Verify Email</a><p style="font-size: 14px; color: #666;">If the button doesn't work, copy and paste this link into your browser:</p><p style="font-size: 13px; color: #666; word-break: break-all;">${link}</p><hr style="margin: 24px 0; border: none; border-top: 1px solid #eee;" /><p style="font-size: 12px; color: #aaa;">If you did not expect this, you can ignore this email.</p></div></div>`
     });
     res.json({ success: true });
   } catch (err) {

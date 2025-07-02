@@ -3,7 +3,7 @@ import { getAuth } from "firebase/auth";
 import { getFirestore } from 'firebase/firestore'
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBnkmEF9sURmzH3zXH4HQMrPEtPx2570LY",
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: "quiz-app-9961f.firebaseapp.com",
   projectId: "quiz-app-9961f",
   storageBucket: "quiz-app-9961f.appspot.com",
