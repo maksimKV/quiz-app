@@ -17,6 +17,7 @@
   },
   "devDependencies": {
     "@types/chart.js": "^2.9.41",
+    "@types/vuelidate": "^0.7.22",
     "@vitejs/plugin-vue": "^6.0.0",
     "autoprefixer": "^10.4.21",
     "postcss": "^8.5.6",
