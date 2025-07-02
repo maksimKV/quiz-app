@@ -45,7 +45,9 @@ export function useAuth() {
         await updateProfile(cred.user, { displayName: name })
       }
       await signInWithEmailAndPassword(auth, email, password)
-      await sendEmailVerification(auth.currentUser)
+      if (auth.currentUser) {
+        await sendEmailVerification(auth.currentUser)
+      }
       return cred.user
     } catch (e: any) {
       error.value = e.message
@@ -90,7 +92,9 @@ export function useAuth() {
       throw new Error(error.value)
     }
     try {
-      await sendEmailVerification(auth.currentUser)
+      if (auth.currentUser) {
+        await sendEmailVerification(auth.currentUser)
+      }
     } catch (e: any) {
       error.value = e.message
       throw e

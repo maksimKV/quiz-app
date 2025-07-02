@@ -95,6 +95,7 @@ import { useAuthStore } from '../store/auth'
 import { quizService } from '../services/quizService'
 import { useQuizTimer } from '../composables/useQuizTimer'
 import { useQuizScoring } from '../composables/useQuizScoring'
+import { updateGamification } from '../composables/useGamification'
 
 const props = defineProps<{ quiz: Quiz, reviewAnswers?: Record<string, any>, forceReview?: boolean, preview?: boolean }>()
 const emit = defineEmits(['submit'])
@@ -224,6 +225,16 @@ async function submit() {
       completedAt: new Date().toISOString(),
       timeSpent: props.quiz.timer ? props.quiz.timer - timeLeft.value : undefined
     })
+
+    // Gamification: XP, streaks, badges
+    if (authStore.user?.uid || authStore.user?.id) {
+      await updateGamification({
+        userId: authStore.user.uid || authStore.user.id,
+        score: totalScore,
+        maxScore,
+        completedAt: new Date().toISOString(),
+      })
+    }
   } catch (err) {
     error.value = (err as Error).message
     console.error('Failed to save quiz results:', err)
