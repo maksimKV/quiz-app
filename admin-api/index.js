@@ -73,6 +73,36 @@ app.get('/api/users', requireAdmin, async (req, res) => {
 app.post('/api/users/promote', requireAdmin, async (req, res) => {
   const { uid } = req.body;
   await admin.auth().setCustomUserClaims(uid, { isAdmin: true });
+  // Send admin confirmation email
+  try {
+    const userRecord = await admin.auth().getUser(uid);
+    if (userRecord.email) {
+      const appUrl = process.env.APP_URL || 'https://your-app-url.com';
+      await transporter.sendMail({
+        from: process.env.SMTP_FROM || process.env.SMTP_USER,
+        to: userRecord.email,
+        subject: 'You have been granted admin access on Quiz App',
+        text: `Hello${userRecord.displayName ? ' ' + userRecord.displayName : ''},\n\nYou have been granted admin access on Quiz App. You can now manage users, quizzes, and view analytics.\n\nGo to: ${appUrl}\n\nIf you did not expect this, please contact support or ignore this email.`,
+        html: `
+          <div style="font-family: Arial, sans-serif; background: #f9fafb; padding: 32px;">
+            <div style="max-width: 480px; margin: auto; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px #0001; padding: 32px;">
+              <h2 style="color: #2563eb; margin-bottom: 16px;">Admin Access Granted <span style='color:#9333ea'>Quiz App</span></h2>
+              <p style="font-size: 16px; color: #222;">Hello${userRecord.displayName ? ' ' + userRecord.displayName : ''},</p>
+              <p style="font-size: 16px; color: #222;">You have been granted <b>admin access</b> on <b>Quiz App</b>. You can now manage users, quizzes, and view analytics.</p>
+              <a href="${appUrl}" style="display: inline-block; margin: 24px 0; padding: 12px 24px; background: linear-gradient(90deg,#2563eb,#9333ea); color: #fff; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 16px;">Go to Admin Panel</a>
+              <p style="font-size: 14px; color: #666;">If the button doesn't work, copy and paste this link into your browser:</p>
+              <p style="font-size: 13px; color: #666; word-break: break-all;">${appUrl}</p>
+              <hr style="margin: 24px 0; border: none; border-top: 1px solid #eee;" />
+              <p style="font-size: 12px; color: #aaa;">If you did not expect this, please contact support or ignore this email.</p>
+            </div>
+          </div>
+        `
+      });
+    }
+  } catch (e) {
+    // Log but don't fail the request if email fails
+    console.error('Failed to send admin confirmation email:', e);
+  }
   res.json({ success: true });
 });
 
@@ -91,7 +121,7 @@ app.delete('/api/users/:uid', requireAdmin, async (req, res) => {
 
 // Invite user (send password reset link)
 app.post('/api/users/invite', requireAdmin, async (req, res) => {
-  const { email, name } = req.body;
+  const { email, name, isAdmin } = req.body;
   try {
     let userRecord;
     try {
@@ -102,6 +132,9 @@ app.post('/api/users/invite', requireAdmin, async (req, res) => {
     if (name && userRecord.displayName !== name) {
       await admin.auth().updateUser(userRecord.uid, { displayName: name });
     }
+    if (isAdmin) {
+      await admin.auth().setCustomUserClaims(userRecord.uid, { isAdmin: true });
+    }
     const link = await admin.auth().generatePasswordResetLink(email);
     // Send invite email
     await transporter.sendMail({
@@ -109,8 +142,55 @@ app.post('/api/users/invite', requireAdmin, async (req, res) => {
       to: email,
       subject: 'You are invited to Quiz App',
       text: `Hello${name ? ' ' + name : ''},\n\nYou have been invited to join Quiz App. Click the link below to set your password and complete your registration:\n\n${link}\n\nIf you did not expect this, you can ignore this email.`,
+      html: `
+        <div style="font-family: Arial, sans-serif; background: #f9fafb; padding: 32px;">
+          <div style="max-width: 480px; margin: auto; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px #0001; padding: 32px;">
+            <h2 style="color: #2563eb; margin-bottom: 16px;">Welcome to <span style='color:#9333ea'>Quiz App</span>!</h2>
+            <p style="font-size: 16px; color: #222;">Hello${name ? ' ' + name : ''},</p>
+            <p style="font-size: 16px; color: #222;">You have been invited to join <b>Quiz App</b>. Click the button below to set your password and complete your registration:</p>
+            <a href="${link}" style="display: inline-block; margin: 24px 0; padding: 12px 24px; background: linear-gradient(90deg,#2563eb,#9333ea); color: #fff; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 16px;">Accept Invite</a>
+            <p style="font-size: 14px; color: #666;">If the button doesn't work, copy and paste this link into your browser:</p>
+            <p style="font-size: 13px; color: #666; word-break: break-all;">${link}</p>
+            <hr style="margin: 24px 0; border: none; border-top: 1px solid #eee;" />
+            <p style="font-size: 12px; color: #aaa;">If you did not expect this, you can ignore this email.</p>
+          </div>
+        </div>
+      `
     });
     res.json({ success: true, inviteLink: link });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// Self-registration endpoint
+app.post('/api/register', async (req, res) => {
+  const { email, password, name, isAdmin } = req.body;
+  try {
+    let userRecord;
+    try {
+      userRecord = await admin.auth().getUserByEmail(email);
+      return res.status(400).json({ error: 'User already exists.' });
+    } catch (e) {
+      userRecord = await admin.auth().createUser({ email, password, displayName: name });
+    }
+    if (name && userRecord.displayName !== name) {
+      await admin.auth().updateUser(userRecord.uid, { displayName: name });
+    }
+    if (isAdmin) {
+      await admin.auth().setCustomUserClaims(userRecord.uid, { isAdmin: true });
+    }
+    // Send email verification link
+    const continueUrl = (process.env.APP_URL || 'http://localhost:5173') + '/verified';
+    const link = await admin.auth().generateEmailVerificationLink(email, { url: continueUrl });
+    await transporter.sendMail({
+      from: process.env.SMTP_FROM || process.env.SMTP_USER,
+      to: email,
+      subject: 'Verify your email for Quiz App',
+      text: `Hello${name ? ' ' + name : ''},\n\nThank you for registering for Quiz App. Please verify your email by clicking the link below:\n\n${link}\n\nIf you did not expect this, you can ignore this email.`,
+      html: `<div style=\"font-family: Arial, sans-serif; background: #f9fafb; padding: 32px;\"><div style=\"max-width: 480px; margin: auto; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px #0001; padding: 32px;\"><h2 style=\"color: #2563eb; margin-bottom: 16px;\">Welcome to <span style='color:#9333ea'>Quiz App</span>!</h2><p style=\"font-size: 16px; color: #222;\">Hello${name ? ' ' + name : ''},</p><p style=\"font-size: 16px; color: #222;\">Thank you for registering for <b>Quiz App</b>. Please verify your email by clicking the button below:</p><a href=\"${link}\" style=\"display: inline-block; margin: 24px 0; padding: 12px 24px; background: linear-gradient(90deg,#2563eb,#9333ea); color: #fff; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 16px;\">Verify Email</a><p style=\"font-size: 14px; color: #666;\">If the button doesn't work, copy and paste this link into your browser:</p><p style=\"font-size: 13px; color: #666; word-break: break-all;\">${link}</p><hr style=\"margin: 24px 0; border: none; border-top: 1px solid #eee;\" /><p style=\"font-size: 12px; color: #aaa;\">If you did not expect this, you can ignore this email.</p></div></div>`
+    });
+    res.json({ success: true });
   } catch (err) {
     res.status(400).json({ error: err.message });
   }

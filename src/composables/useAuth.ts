@@ -1,6 +1,6 @@
 import { ref, onUnmounted } from 'vue'
 import { auth } from '../firebase'
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile, User } from 'firebase/auth'
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile, User, sendEmailVerification } from 'firebase/auth'
 import { useAuthStore } from '../store/auth'
 
 const user = ref<User | null>(null)
@@ -46,6 +46,11 @@ async function login(email: string, password: string) {
   error.value = null
   try {
     const cred = await signInWithEmailAndPassword(auth, email, password)
+    if (!cred.user.emailVerified) {
+      await signOut(auth)
+      error.value = 'Please verify your email before logging in. You can resend the verification email below.'
+      throw new Error(error.value)
+    }
     return cred.user
   } catch (e: any) {
     error.value = e.message
@@ -57,6 +62,20 @@ async function logout() {
   await signOut(auth)
 }
 
+async function resendVerificationEmail() {
+  error.value = null
+  if (!auth.currentUser) {
+    error.value = 'No user is currently signed in.'
+    throw new Error(error.value)
+  }
+  try {
+    await sendEmailVerification(auth.currentUser)
+  } catch (e: any) {
+    error.value = e.message
+    throw e
+  }
+}
+
 export function useAuth() {
   return {
     user,
@@ -65,6 +84,7 @@ export function useAuth() {
     error,
     signup,
     login,
-    logout
+    logout,
+    resendVerificationEmail
   }
 } 
