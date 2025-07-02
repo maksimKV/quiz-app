@@ -4,6 +4,7 @@ const cors = require('cors');
 const nodemailer = require('nodemailer');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
+const morgan = require('morgan');
 
 // Initialize Firebase Admin SDK
 admin.initializeApp({
@@ -19,6 +20,7 @@ app.use(rateLimit({
   legacyHeaders: false,
 }));
 app.use(cors());
+app.use(morgan('combined'));
 app.use(express.json());
 
 // Configure nodemailer SMTP transport
