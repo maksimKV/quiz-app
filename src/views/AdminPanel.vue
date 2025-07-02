@@ -18,7 +18,6 @@
         <input type="file" accept="application/json" class="hidden" @change="importQuizzes" />
       </label>
       <button class="px-4 py-2 bg-purple-600 text-white rounded-lg shadow hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-400 transition" @click="showAnalytics = true">View Analytics</button>
-      <button class="px-4 py-2 bg-green-600 text-white rounded-lg shadow hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-400 transition" @click="showLeaderboard = true">Leaderboard</button>
       <button class="px-4 py-2 bg-orange-600 text-white rounded-lg shadow hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-400 transition" @click="exportAnalytics">Export Analytics</button>
       <button class="px-4 py-2 bg-pink-600 text-white rounded-lg shadow hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-400 transition" @click="showUserManagement = true">User Management</button>
     </div>
@@ -37,13 +36,6 @@
       :results="results"
       :show="showAnalytics"
       @close="showAnalytics = false"
-    />
-    <AdminLeaderboardModal
-      v-if="showLeaderboard"
-      :leaderboard="leaderboard"
-      :user="user"
-      :userInfo="userInfo"
-      @close="showLeaderboard = false"
     />
     <AdminUserManagementModal
       v-if="showUserManagement"
@@ -80,7 +72,6 @@ import AdminQuizList from '../components/AdminQuizList.vue'
 import AdminQuizForm from '../components/AdminQuizForm.vue'
 import AdminQuestionBuilder from '../components/AdminQuestionBuilder.vue'
 import AdminAnalyticsModal from '../components/AdminAnalyticsModal.vue'
-import AdminLeaderboardModal from '../components/AdminLeaderboardModal.vue'
 import AdminUserManagementModal from '../components/AdminUserManagementModal.vue'
 import type { Quiz } from '../types/quiz'
 import type { Chart } from 'chart.js'
@@ -100,7 +91,6 @@ const { attempts, avgScore, avgTime, questionCorrectPct, mostMissedOption, leade
 
 const showQuizForm = ref(false)
 const showAnalytics = ref(false)
-const showLeaderboard = ref(false)
 const showUserManagement = ref(false)
 const selectedQuiz = ref<Quiz | null>(null)
 const inviteEmail = ref('')

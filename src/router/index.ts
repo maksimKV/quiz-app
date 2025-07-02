@@ -42,6 +42,21 @@ export const routes: RouteRecordRaw[] = [
     component: () => import('../views/VerifyEmail.vue'),
   },
   {
+    path: '/leaderboard',
+    name: 'Leaderboard',
+    component: () => import('../views/Leaderboard.vue'),
+  },
+  {
+    path: '/analytics',
+    name: 'Analytics',
+    component: () => import('../views/Analytics.vue'),
+  },
+  {
+    path: '/user-management',
+    name: 'UserManagement',
+    component: () => import('../views/UserManagement.vue'),
+  },
+  {
     path: '/',
     redirect: '/player',
   },
@@ -54,11 +69,11 @@ export const router = createRouter({
 
 // Route guard for authentication
 router.beforeEach((to, from, next) => {
-  const { user, loading } = useAuth()
-  // Wait for auth to finish loading
-  if (loading.value) {
-    const unwatch = watch(loading, (val) => {
-      if (!val) {
+  const { user, loading, authReady } = useAuth()
+  // Wait for authReady to be true
+  if (!authReady.value) {
+    const unwatch = watch(authReady, (val) => {
+      if (val) {
         unwatch()
         proceed()
       }
@@ -73,18 +88,30 @@ router.beforeEach((to, from, next) => {
     const isEmailVerified = user.value && user.value.emailVerified
     const publicPages = ['/login', '/register', '/verified', '/verify-email']
 
+    // Debug logs
+    console.log('Route guard user:', user.value)
+    console.log('Route guard isAdmin:', isAdmin)
+    console.log('Navigating to:', to.path)
+
+    // Require email verification for all protected pages
     if (isAuthenticated && !isEmailVerified && !publicPages.includes(to.path)) {
       next('/verify-email')
+    // Redirect authenticated users away from login/register/verified
     } else if (to.path === '/login' || to.path === '/register' || to.path === '/verified') {
       if (isAuthenticated) {
         next('/profile')
       } else {
         next()
       }
-    } else if (!isAuthenticated) {
+    // Require authentication for all non-public pages
+    } else if (!isAuthenticated && !publicPages.includes(to.path)) {
       next('/login')
-    } else if (to.path === '/admin' && !isAdmin) {
+    // Admin-only routes
+    } else if ((to.path === '/admin' || to.path === '/analytics' || to.path === '/user-management') && !isAdmin) {
       next('/player')
+    // Authenticated-only route for leaderboard
+    } else if (to.path === '/leaderboard' && !isAuthenticated) {
+      next('/login')
     } else {
       next()
     }

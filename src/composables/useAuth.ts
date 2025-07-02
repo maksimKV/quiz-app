@@ -8,27 +8,31 @@ export function useAuth() {
   const firebaseUser = ref<User | null>(null)
   const loading = ref(true)
   const error = ref<string | null>(null)
+  const authReady = ref(false)
 
   const authStore = useAuthStore()
 
   const unsubscribe = onAuthStateChanged(auth, async (firebaseUserObj: User | null) => {
     firebaseUser.value = firebaseUserObj
-    user.value = firebaseUserObj
     loading.value = false
     if (firebaseUserObj) {
       const idTokenResult = await getIdTokenResult(firebaseUserObj)
       const isAdmin = !!idTokenResult.claims.isAdmin
+      const extendedUser = Object.assign({}, firebaseUserObj, { isAdmin })
+      user.value = extendedUser
       authStore.login({
         id: firebaseUserObj.uid,
         uid: firebaseUserObj.uid,
         name: firebaseUserObj.displayName || firebaseUserObj.email || '',
         email: firebaseUserObj.email || '',
         isAdmin
-      }, firebaseUserObj)
-      user.value = { ...firebaseUserObj, isAdmin } as User & { isAdmin: boolean }
+      }, extendedUser)
+      console.log('onAuthStateChanged user:', extendedUser)
     } else {
+      user.value = null
       authStore.logout()
     }
+    authReady.value = true
   })
 
   onUnmounted(() => unsubscribe())
@@ -51,22 +55,27 @@ export function useAuth() {
 
   async function login(email: string, password: string) {
     error.value = null
+    loading.value = true
     try {
       const cred = await signInWithEmailAndPassword(auth, email, password)
       const idTokenResult = await getIdTokenResult(cred.user)
       const isAdmin = !!idTokenResult.claims.isAdmin
+      const extendedUser = Object.assign({}, cred.user, { isAdmin })
+      user.value = extendedUser
       authStore.login({
         id: cred.user.uid,
         uid: cred.user.uid,
         name: cred.user.displayName || cred.user.email || '',
         email: cred.user.email || '',
         isAdmin
-      }, cred.user)
-      user.value = { ...cred.user, isAdmin } as User & { isAdmin: boolean }
+      }, extendedUser)
+      console.log('login user:', extendedUser)
       return cred.user
     } catch (e: any) {
       error.value = e.message
       throw e
+    } finally {
+      loading.value = false
     }
   }
 
@@ -96,6 +105,7 @@ export function useAuth() {
     signup,
     login,
     logout,
-    resendVerificationEmail
+    resendVerificationEmail,
+    authReady
   }
 } 

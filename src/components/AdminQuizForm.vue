@@ -24,7 +24,7 @@
       </label>
     </div>
     <div>
-      <AdminQuestionBuilder v-model="form.questions || []" :disabled="loading" />
+      <AdminQuestionBuilder v-model="form.questions" :disabled="loading" />
       <div v-if="$v.form.questions.$error" class="text-red-500 text-xs mt-1">At least one question is required.</div>
     </div>
     <div class="flex gap-2 mt-6">
@@ -91,7 +91,7 @@ const $v = useVuelidate(rules, { form })
 
 watch(
   () => props.modelValue,
-  (val) => {
+  (val: Quiz | null | undefined) => {
     if (val) {
       form.value = { ...val }
       tagsInput.value = val.tags.join(', ')
@@ -105,8 +105,8 @@ watch(
   { immediate: true }
 )
 
-watch(tagsInput, (val) => {
-  form.value.tags = val.split(',').map(t => t.trim()).filter(Boolean)
+watch(tagsInput, (val: string) => {
+  form.value.tags = val.split(',').map((t: string) => t.trim()).filter(Boolean)
 })
 
 async function onSubmit() {
@@ -141,6 +141,14 @@ async function onSubmit() {
     loading.value = false
   }
 }
+
+defineExpose({
+  onSubmit,
+  error,
+  form,
+  $v,
+  loading
+})
 </script>
 
 <style scoped>
