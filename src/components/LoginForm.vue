@@ -25,6 +25,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { useAuth } from '../composables/useAuth'
 
 const email = ref('')
@@ -34,12 +35,14 @@ const resent = ref(false)
 const { login, error, resendVerificationEmail, loading } = useAuth()
 
 const showResend = ref(false)
+const router = useRouter()
 
 async function onLogin() {
   resent.value = false
   showResend.value = false
   try {
     await login(email.value, password.value)
+    router.push('/profile')
   } catch (e: any) {
     // If the error is about verification, show the resend button
     if (error.value && error.value.includes('verify your email')) {

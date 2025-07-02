@@ -11,7 +11,7 @@ export function useAuth() {
 
   const authStore = useAuthStore()
 
-  const unsubscribe = onAuthStateChanged(auth, (firebaseUserObj) => {
+  const unsubscribe = onAuthStateChanged(auth, (firebaseUserObj: User | null) => {
     firebaseUser.value = firebaseUserObj
     user.value = firebaseUserObj
     loading.value = false
@@ -37,6 +37,8 @@ export function useAuth() {
       if (name) {
         await updateProfile(cred.user, { displayName: name })
       }
+      await signInWithEmailAndPassword(auth, email, password)
+      await sendEmailVerification(auth.currentUser)
       return cred.user
     } catch (e: any) {
       error.value = e.message
@@ -48,11 +50,6 @@ export function useAuth() {
     error.value = null
     try {
       const cred = await signInWithEmailAndPassword(auth, email, password)
-      if (!cred.user.emailVerified) {
-        await signOut(auth)
-        error.value = 'Please verify your email before logging in. You can resend the verification email below.'
-        throw new Error(error.value)
-      }
       authStore.login({
         id: cred.user.uid,
         uid: cred.user.uid,

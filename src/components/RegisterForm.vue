@@ -27,6 +27,8 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { useAuth } from '../composables/useAuth'
 
 const name = ref('')
 const email = ref('')
@@ -35,6 +37,9 @@ const isAdmin = ref(false)
 const error = ref('')
 const success = ref(false)
 const loading = ref(false)
+
+const router = useRouter()
+const { login } = useAuth()
 
 async function onRegister() {
   error.value = ''
@@ -47,6 +52,14 @@ async function onRegister() {
       body: JSON.stringify({ name: name.value, email: email.value, password: password.value, isAdmin: isAdmin.value })
     })
     if (!res.ok) throw new Error(await res.text())
+    // Try to log the user in immediately after registration
+    try {
+      await login(email.value, password.value)
+      router.push('/verify-email')
+    } catch (loginErr: any) {
+      error.value = 'Registered, but failed to log in: ' + (loginErr.message || loginErr)
+      return
+    }
     success.value = true
     name.value = ''
     email.value = ''

@@ -37,6 +37,11 @@ export const routes: RouteRecordRaw[] = [
     component: Verified,
   },
   {
+    path: '/verify-email',
+    name: 'VerifyEmail',
+    component: () => import('../views/VerifyEmail.vue'),
+  },
+  {
     path: '/',
     redirect: '/player',
   },
@@ -65,9 +70,14 @@ router.beforeEach((to, from, next) => {
   function proceed() {
     const isAuthenticated = !!user.value
     const isAdmin = user.value && 'isAdmin' in user.value && (user.value.isAdmin === true)
-    if (to.path === '/login' || to.path === '/register' || to.path === '/verified') {
-      if (isAuthenticated && to.path !== '/verified') {
-        next('/player')
+    const isEmailVerified = user.value && user.value.emailVerified
+    const publicPages = ['/login', '/register', '/verified', '/verify-email']
+
+    if (isAuthenticated && !isEmailVerified && !publicPages.includes(to.path)) {
+      next('/verify-email')
+    } else if (to.path === '/login' || to.path === '/register' || to.path === '/verified') {
+      if (isAuthenticated) {
+        next('/profile')
       } else {
         next()
       }
