@@ -16,17 +16,20 @@ function handleLogout() {
 </script>
 
 <template>
-  <div>
-    <nav class="flex items-center gap-4 p-4 bg-gray-100 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
-      <router-link to="/player" class="font-bold text-blue-700 dark:text-blue-300">Quiz Player</router-link>
-      <router-link to="/admin" class="font-bold text-purple-700 dark:text-purple-300">Admin Panel</router-link>
-      <router-link to="/profile" class="font-bold text-green-700 dark:text-green-300">Profile</router-link>
-      <router-link v-if="!isAuthenticated" to="/login" class="ml-auto font-bold text-gray-700 dark:text-gray-300">Login</router-link>
-      <router-link v-if="!isAuthenticated" to="/register" class="font-bold text-gray-700 dark:text-gray-300">Register</router-link>
-      <button v-else class="ml-auto px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700" @click="handleLogout">Logout</button>
+  <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <nav class="sticky top-0 z-30 flex items-center gap-4 px-8 py-4 bg-white/80 dark:bg-gray-900/80 border-b border-gray-200 dark:border-gray-700 shadow-sm backdrop-blur rounded-b-xl">
+      <router-link to="/player" class="font-bold text-blue-700 dark:text-blue-300 hover:underline focus:outline-none focus:ring-2 focus:ring-blue-400 px-2 py-1 rounded transition">Quiz Player</router-link>
+      <router-link to="/admin" class="font-bold text-purple-700 dark:text-purple-300 hover:underline focus:outline-none focus:ring-2 focus:ring-purple-400 px-2 py-1 rounded transition">Admin Panel</router-link>
+      <router-link to="/profile" class="font-bold text-green-700 dark:text-green-300 hover:underline focus:outline-none focus:ring-2 focus:ring-green-400 px-2 py-1 rounded transition">Profile</router-link>
+      <div class="flex-1"></div>
+      <router-link v-if="!isAuthenticated" to="/login" class="font-bold text-gray-700 dark:text-gray-300 hover:underline focus:outline-none focus:ring-2 focus:ring-blue-400 px-3 py-1 rounded transition">Login</router-link>
+      <router-link v-if="!isAuthenticated" to="/register" class="font-bold text-gray-700 dark:text-gray-300 hover:underline focus:outline-none focus:ring-2 focus:ring-blue-400 px-3 py-1 rounded transition">Register</router-link>
+      <button v-else class="px-4 py-2 bg-red-600 text-white rounded shadow hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-400 transition ml-4" @click="handleLogout">Logout</button>
     </nav>
-    <router-view />
-    </div>
+    <main class="max-w-4xl mx-auto p-4 md:p-8">
+      <router-view />
+    </main>
+  </div>
 </template>
 
 <style scoped>

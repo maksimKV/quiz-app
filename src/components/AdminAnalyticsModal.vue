@@ -1,20 +1,20 @@
 <template>
   <div class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
-    <div class="bg-white dark:bg-gray-800 p-6 rounded shadow max-w-2xl w-full relative overflow-auto">
-      <button class="absolute top-2 right-2 text-gray-500 hover:text-gray-800 dark:hover:text-gray-200" @click="$emit('close')">&times;</button>
-      <h2 class="text-xl font-bold mb-4">Quiz Analytics</h2>
-      <div v-for="quiz in quizzes" :key="quiz.id" class="mb-8">
-        <div class="font-semibold mb-1">{{ quiz.title }}</div>
-        <div class="text-sm mb-1">Attempts: {{ attempts(quiz.id) }}, Average Score: {{ avgScore(quiz.id) }}, Avg. Time: {{ avgTime(quiz.id) }}</div>
-        <canvas :id="'chart-' + quiz.id" height="120"></canvas>
+    <div class="bg-white/95 dark:bg-gray-800/95 p-8 rounded-2xl shadow-2xl max-w-2xl w-full relative overflow-auto border border-gray-200 dark:border-gray-700">
+      <button class="absolute top-2 right-2 text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 text-2xl font-bold focus:outline-none focus:ring-2 focus:ring-blue-400 rounded-full transition" @click="$emit('close')">&times;</button>
+      <h2 class="text-2xl font-extrabold mb-6 text-blue-700 dark:text-blue-300 text-center">Quiz Analytics</h2>
+      <div v-for="quiz in quizzes" :key="quiz.id" class="mb-10 p-4 bg-gray-50 dark:bg-gray-900 rounded-xl shadow border border-gray-200 dark:border-gray-700">
+        <div class="font-bold mb-2 text-lg text-purple-700 dark:text-purple-300">{{ quiz.title }}</div>
+        <div class="text-sm mb-2">Attempts: <span class="font-semibold">{{ attempts(quiz.id) }}</span>, Average Score: <span class="font-semibold">{{ avgScore(quiz.id) }}</span>, Avg. Time: <span class="font-semibold">{{ avgTime(quiz.id) }}</span></div>
+        <canvas :id="'chart-' + quiz.id" height="120" class="mb-4"></canvas>
         <div v-if="quiz.questions.length" class="mt-4">
           <h4 class="font-semibold mb-2 text-sm">Per-Question Stats</h4>
-          <canvas :id="'qchart-' + quiz.id" height="80"></canvas>
+          <canvas :id="'qchart-' + quiz.id" height="80" class="mb-2"></canvas>
           <ul class="text-xs space-y-1 mt-2">
             <li v-for="(q, qidx) in quiz.questions" :key="q.id">
               <span class="font-bold">Q{{ qidx + 1 }}:</span> {{ q.content }} —
-              <span>Correct: {{ questionCorrectPct(quiz.id, q.id) }}%</span>
-              <span v-if="mostMissedOption(quiz.id, q.id)">, Most Missed: {{ mostMissedOption(quiz.id, q.id) }}</span>
+              <span>Correct: <span class="text-green-600 font-semibold">{{ questionCorrectPct(quiz.id, q.id) }}%</span></span>
+              <span v-if="mostMissedOption(quiz.id, q.id)">, Most Missed: <span class="text-red-600 font-semibold">{{ mostMissedOption(quiz.id, q.id) }}</span></span>
             </li>
           </ul>
         </div>

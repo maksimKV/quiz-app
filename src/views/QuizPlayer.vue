@@ -1,12 +1,18 @@
 <template>
   <div class="max-w-3xl mx-auto p-8">
-    <UserResults v-if="user" :user-id="user.id" />
-    <QuizList v-if="!selectedQuiz && !showResults" @start="startQuiz" />
-    <QuizPlayerView v-else-if="selectedQuiz && !showResults" :quiz="selectedQuiz" @submit="onSubmit" />
-    <div v-else class="bg-white dark:bg-gray-800 p-6 rounded shadow">
-      <h2 class="text-xl font-bold mb-4">Quiz Results</h2>
-      <div class="mb-2">Score: {{ scoreDisplay }} / {{ total }}</div>
-      <button class="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700" @click="reset">Back to Quiz List</button>
+    <div class="mb-8">
+      <UserResults v-if="user" :user-id="user.id" />
+    </div>
+    <div v-if="!selectedQuiz && !showResults">
+      <QuizList @start="startQuiz" />
+    </div>
+    <div v-else-if="selectedQuiz && !showResults">
+      <QuizPlayerView :quiz="selectedQuiz" @submit="onSubmit" />
+    </div>
+    <div v-else class="bg-white/90 dark:bg-gray-800/90 p-8 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 mt-8 text-center">
+      <h2 class="text-2xl font-extrabold mb-4 text-blue-700 dark:text-blue-300">Quiz Results</h2>
+      <div class="mb-4 text-lg font-semibold">Score: <span class="text-green-600">{{ scoreDisplay }}</span> / {{ total }}</div>
+      <button class="mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition" @click="reset">Back to Quiz List</button>
     </div>
   </div>
 </template>

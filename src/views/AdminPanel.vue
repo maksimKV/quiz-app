@@ -1,34 +1,36 @@
 <template>
-  <div class="max-w-3xl mx-auto p-8">
+  <div class="max-w-4xl mx-auto p-8 bg-white/90 dark:bg-gray-800/90 rounded-2xl shadow-xl mt-12 border border-gray-200 dark:border-gray-700">
     <div v-if="globalLoading" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
-      <div class="bg-white dark:bg-gray-800 p-6 rounded shadow flex items-center gap-2">
-        <svg class="animate-spin h-6 w-6 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg>
-        <span>Loading...</span>
+      <div class="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-xl flex items-center gap-4">
+        <svg class="animate-spin h-8 w-8 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg>
+        <span class="text-lg font-semibold">Loading...</span>
       </div>
     </div>
-    <div v-if="globalError" class="mb-4 p-3 bg-red-100 text-red-700 rounded shadow flex items-center justify-between">
+    <div v-if="globalError" class="mb-4 p-4 bg-red-100 text-red-700 rounded-lg shadow flex items-center justify-between">
       <span>{{ globalError }}</span>
-      <button class="ml-4 px-2 py-1 bg-red-300 rounded" @click="globalError = ''">Dismiss</button>
+      <button class="ml-4 px-3 py-1 bg-red-300 rounded hover:bg-red-400 transition" @click="globalError = ''">Dismiss</button>
     </div>
-    <h1 class="text-2xl font-bold mb-6">Admin Panel</h1>
-    <div class="flex gap-2 mb-4">
-      <button class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700" @click="exportQuizzes">Export Quizzes</button>
-      <label class="px-3 py-1 bg-gray-300 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded hover:bg-gray-400 dark:hover:bg-gray-600 cursor-pointer">
+    <h1 class="text-3xl font-extrabold mb-8 text-center text-purple-700 dark:text-purple-300">Admin Panel</h1>
+    <div class="flex flex-wrap gap-3 mb-6 justify-center">
+      <button class="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition" @click="exportQuizzes">Export Quizzes</button>
+      <label class="px-4 py-2 bg-gray-300 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg shadow hover:bg-gray-400 dark:hover:bg-gray-600 cursor-pointer transition">
         Import Quizzes
         <input type="file" accept="application/json" class="hidden" @change="importQuizzes" />
       </label>
-      <button class="px-3 py-1 bg-purple-600 text-white rounded hover:bg-purple-700" @click="showAnalytics = true">View Analytics</button>
-      <button class="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700" @click="showLeaderboard = true">Leaderboard</button>
-      <button class="px-3 py-1 bg-orange-600 text-white rounded hover:bg-orange-700" @click="exportAnalytics">Export Analytics</button>
-      <button class="px-3 py-1 bg-pink-600 text-white rounded hover:bg-pink-700" @click="showUserManagement = true">User Management</button>
+      <button class="px-4 py-2 bg-purple-600 text-white rounded-lg shadow hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-400 transition" @click="showAnalytics = true">View Analytics</button>
+      <button class="px-4 py-2 bg-green-600 text-white rounded-lg shadow hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-400 transition" @click="showLeaderboard = true">Leaderboard</button>
+      <button class="px-4 py-2 bg-orange-600 text-white rounded-lg shadow hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-400 transition" @click="exportAnalytics">Export Analytics</button>
+      <button class="px-4 py-2 bg-pink-600 text-white rounded-lg shadow hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-400 transition" @click="showUserManagement = true">User Management</button>
     </div>
-    <AdminQuizList v-if="!showQuizForm" @create="onCreate" @edit="editQuiz" @delete="deleteQuiz" />
-    <AdminQuizForm
-      v-else
-      :model-value="selectedQuiz"
-      @save="onSave"
-      @cancel="onCancel"
-    />
+    <div class="mt-8">
+      <AdminQuizList v-if="!showQuizForm" @create="onCreate" @edit="editQuiz" @delete="deleteQuiz" />
+      <AdminQuizForm
+        v-else
+        :model-value="selectedQuiz"
+        @save="onSave"
+        @cancel="onCancel"
+      />
+    </div>
     <AdminAnalyticsModal
       v-if="showAnalytics"
       :quizzes="quizzes"

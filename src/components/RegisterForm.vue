@@ -1,26 +1,26 @@
 <template>
-  <div class="max-w-md mx-auto p-6 bg-white dark:bg-gray-800 rounded shadow mt-12">
-    <h2 class="text-xl font-bold mb-4">Register</h2>
-    <form @submit.prevent="onRegister" class="space-y-4">
+  <div class="max-w-md mx-auto p-8 bg-white/90 dark:bg-gray-800/90 rounded-2xl shadow-xl mt-16 border border-gray-200 dark:border-gray-700">
+    <h2 class="text-2xl font-extrabold mb-6 text-center text-blue-700 dark:text-blue-300">Register</h2>
+    <form @submit.prevent="onRegister" class="space-y-6">
       <div>
-        <label class="block font-semibold mb-1">Name</label>
-        <input v-model="name" type="text" class="input" required />
+        <label class="block font-semibold mb-1 text-gray-700 dark:text-gray-200">Name</label>
+        <input v-model="name" type="text" class="input focus:ring-2 focus:ring-blue-400" required />
       </div>
       <div>
-        <label class="block font-semibold mb-1">Email</label>
-        <input v-model="email" type="email" class="input" required />
+        <label class="block font-semibold mb-1 text-gray-700 dark:text-gray-200">Email</label>
+        <input v-model="email" type="email" class="input focus:ring-2 focus:ring-blue-400" required />
       </div>
       <div>
-        <label class="block font-semibold mb-1">Password</label>
-        <input v-model="password" type="password" class="input" required />
+        <label class="block font-semibold mb-1 text-gray-700 dark:text-gray-200">Password</label>
+        <input v-model="password" type="password" class="input focus:ring-2 focus:ring-blue-400" required />
       </div>
       <div class="flex items-center gap-2">
-        <input v-model="isAdmin" type="checkbox" id="admin" />
-        <label for="admin" class="font-semibold">Register as Admin</label>
+        <input v-model="isAdmin" type="checkbox" id="admin" class="accent-blue-600" />
+        <label for="admin" class="font-semibold text-gray-700 dark:text-gray-200">Register as Admin</label>
       </div>
       <div v-if="error" class="text-red-600 text-sm mb-2">{{ error }}</div>
       <div v-if="success" class="text-green-600 text-sm mb-2">Registration successful! Please check your email to verify your account.</div>
-      <button type="submit" class="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700" :disabled="loading">Register</button>
+      <button type="submit" class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition disabled:opacity-50 disabled:cursor-not-allowed" :disabled="loading">Register</button>
     </form>
   </div>
 </template>

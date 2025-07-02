@@ -1,15 +1,15 @@
 <template>
   <div class="mb-8">
-    <h2 class="text-lg font-semibold mb-2">Your Past Results</h2>
+    <h2 class="text-xl font-extrabold mb-4 text-blue-700 dark:text-blue-300">Your Past Results</h2>
     <div v-if="loading" class="text-center py-4">
       <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
       <p class="mt-2 text-gray-500">Loading results...</p>
     </div>
-    <div v-else-if="error" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+    <div v-else-if="error" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-4 shadow">
       {{ error }}
     </div>
     <div v-else>
-      <div class="flex flex-wrap gap-2 mb-2">
+      <div class="flex flex-wrap gap-2 mb-4">
         <label class="text-sm">Sort by:
           <select v-model="sortKey" class="ml-1 px-2 py-1 rounded border">
             <option value="date">Date</option>
@@ -22,17 +22,17 @@
             <option v-for="q in quizzes" :key="q.id" :value="q.id">{{ q.title }}</option>
           </select>
         </label>
-        <button class="ml-auto px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700" @click="exportResults">Export</button>
-        <label class="px-3 py-1 bg-gray-300 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded hover:bg-gray-400 dark:hover:bg-gray-600 cursor-pointer">
+        <button class="ml-auto px-4 py-1 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition" @click="exportResults">Export</button>
+        <label class="px-4 py-1 bg-gray-300 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg shadow hover:bg-gray-400 dark:hover:bg-gray-600 cursor-pointer transition">
           Import
           <input type="file" accept="application/json" class="hidden" @change="importResults" />
         </label>
       </div>
       <div v-if="sortedResults.length === 0" class="text-gray-500">No results yet.</div>
-      <ul v-else class="space-y-2">
-        <li v-for="r in sortedResults" :key="r.id" class="flex items-center justify-between bg-gray-100 dark:bg-gray-900 rounded shadow p-3 cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900" @click="showReview(r)">
+      <ul v-else class="space-y-3">
+        <li v-for="r in sortedResults" :key="r.id" class="flex items-center justify-between bg-white/90 dark:bg-gray-900/90 rounded-xl shadow p-4 cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900 border border-gray-200 dark:border-gray-700 transition">
           <div>
-            <div class="font-bold">{{ quizTitle(r.quizId) }}</div>
+            <div class="font-bold text-lg">{{ quizTitle(r.quizId) }}</div>
             <div class="text-xs text-gray-500">{{ formatDate(r.completedAt) }}</div>
           </div>
           <div class="text-sm">
@@ -42,8 +42,8 @@
         </li>
       </ul>
       <div v-if="reviewResult" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
-        <div class="bg-white dark:bg-gray-800 p-6 rounded shadow max-w-2xl w-full relative">
-          <button class="absolute top-2 right-2 text-gray-500 hover:text-gray-800 dark:hover:text-gray-200" @click="reviewResult = null">&times;</button>
+        <div class="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-xl max-w-2xl w-full relative border border-gray-200 dark:border-gray-700">
+          <button class="absolute top-2 right-2 text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 text-2xl font-bold" @click="reviewResult = null">&times;</button>
           <QuizPlayerView :quiz="quizForReview" :review-answers="reviewResult.answers" :force-review="true" />
         </div>
       </div>
