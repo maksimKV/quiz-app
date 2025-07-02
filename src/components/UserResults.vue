@@ -111,11 +111,20 @@ function importResults(e: Event) {
     try {
       const imported = JSON.parse(event.target?.result as string)
       if (Array.isArray(imported)) {
+        let added = 0, updated = 0
         imported.forEach(r => {
           if (r.userId === props.userId) {
-            userResultStore.addResult(r)
+            const existing = userResultStore.results.find(er => er.id === r.id)
+            if (existing) {
+              Object.assign(existing, r)
+              updated++
+            } else {
+              userResultStore.addResult(r)
+              added++
+            }
           }
         })
+        alert(`Import complete. Added: ${added}, Updated: ${updated}`)
       }
     } catch (err) {
       alert('Invalid results file.')
