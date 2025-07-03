@@ -70,17 +70,18 @@ app.use(cors())
 app.use(morgan('combined'))
 app.use(express.json())
 
+// Determine secure based on SMTP_PORT
+const smtpPort = parseInt(process.env.SMTP_PORT, 10)
+const isSecure = smtpPort === 465
+
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
-  port: process.env.SMTP_PORT,
-  secure: true,
+  port: smtpPort,
+  secure: isSecure, // true for 465, false for 587/25
   auth: {
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS,
-  },
-  tls: {
-    rejectUnauthorized: false,
-  },
+  }
 })
 
 // Checks for valid admin token and privileges
