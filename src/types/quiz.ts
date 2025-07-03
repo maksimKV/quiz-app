@@ -17,5 +17,5 @@ export interface Quiz {
   tags: string[]
   published: boolean
   questions: Question[]
-  timer?: number // seconds, optional
+  timer?: number
 }

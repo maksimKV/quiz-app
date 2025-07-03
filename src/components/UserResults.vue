@@ -147,7 +147,6 @@ const quizForReview = computed(() => {
   if (!reviewResult.value) return null
   const quiz = quizzes.value.find(q => q.id === reviewResult.value?.quizId)
   if (!quiz) return null
-  // Return a copy with questions, but don't mutate the original
   return JSON.parse(JSON.stringify(quiz))
 })
 

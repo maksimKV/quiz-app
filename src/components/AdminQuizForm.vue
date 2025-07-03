@@ -14,7 +14,9 @@
         :disabled="loading"
         @blur="$v.form.title.$touch()"
       />
-      <div v-if="$v.form.title.$error && $v.form.title.$dirty" class="text-red-500 text-xs mt-1">Title is required.</div>
+      <div v-if="$v.form.title.$error && $v.form.title.$dirty" class="text-red-500 text-xs mt-1">
+        Title is required.
+      </div>
     </div>
     <div>
       <label class="block font-semibold mb-1">Description</label>
@@ -26,7 +28,10 @@
         :disabled="loading"
         @blur="$v.form.description.$touch()"
       />
-      <div v-if="$v.form.description.$error && $v.form.description.$dirty" class="text-red-500 text-xs mt-1">
+      <div
+        v-if="$v.form.description.$error && $v.form.description.$dirty"
+        class="text-red-500 text-xs mt-1"
+      >
         Description is required.
       </div>
     </div>
@@ -41,7 +46,7 @@
       </label>
     </div>
     <div>
-      <AdminQuestionBuilder v-model="form.questions" :disabled="loading" />
+      <AdminQuestionBuilder v-model="questionsProxy" :disabled="loading" />
       <div v-if="$v.form.questions.$error" class="text-red-500 text-xs mt-1">
         At least one question is required.
       </div>
@@ -94,7 +99,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, computed } from 'vue'
 import { useVuelidate } from '@vuelidate/core'
 import { required, minLength } from '@vuelidate/validators'
 import type { Quiz } from '../types/quiz'
@@ -131,9 +136,16 @@ const rules = {
 
 const $v = useVuelidate(rules, { form })
 
+const questionsProxy = computed({
+  get: () => form.value.questions ?? [],
+  set: val => {
+    form.value.questions = val
+  },
+})
+
 watch(
   () => props.modelValue?.id,
-  (id) => {
+  id => {
     if (id && id !== lastQuizId.value) {
       const val = props.modelValue
       form.value = { ...val, questions: val?.questions ? [...val.questions] : [] }
@@ -146,6 +158,7 @@ watch(
       lastQuizId.value = null
       $v.value.$reset()
     }
+    if (!form.value.questions) form.value.questions = []
   },
   { immediate: true }
 )
@@ -157,6 +170,7 @@ watch(tagsInput, (val: string) => {
     .filter(Boolean)
 })
 
+// Handles both add and update quiz logic
 async function onSubmit() {
   $v.value.$touch()
   if ($v.value.$invalid) return

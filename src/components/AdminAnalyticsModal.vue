@@ -127,12 +127,10 @@ const { attempts, avgScore, avgTime, questionCorrectPct, mostMissedOption } = us
   results.value
 )
 
-// Pagination state
 const currentPage = ref(0)
 const totalPages = computed(() => quizzes.value.length)
 const currentQuiz = computed(() => quizzes.value[currentPage.value] || null)
 
-// Question pagination state
 const QUESTIONS_PER_PAGE = 5
 const questionPage = ref(0)
 const totalQuestionPages = computed(() =>
@@ -155,12 +153,11 @@ function goToPrevQuestions() {
 function goToNextQuestions() {
   if (questionPage.value < totalQuestionPages.value - 1) questionPage.value++
 }
-// Reset question page when quiz changes
 watch(currentPage, () => {
   questionPage.value = 0
 })
 
-// Chart rendering logic
+// Chart rendering and destruction logic
 const chartInstances: Record<string, Chart> = {}
 function destroyAllCharts() {
   Object.values(chartInstances).forEach(chart => chart?.destroy())
@@ -189,7 +186,6 @@ function renderCharts() {
       options: { responsive: false, plugins: { legend: { display: false } } },
     })
   }
-  // Per-question correct % chart
   const ctxQ = document.getElementById('qchart-' + quiz.id) as HTMLCanvasElement
   if (ctxQ) {
     const existingQ = Chart.getChart(ctxQ)

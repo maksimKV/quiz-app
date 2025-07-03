@@ -5,7 +5,7 @@ import type { UserResult } from '../types/userResult'
 export interface GamificationInput {
   userId: string
   score: number
-  completedAt: string // ISO date string
+  completedAt: string
 }
 
 export interface UserStats {
@@ -49,32 +49,32 @@ if (typeof window !== 'undefined') {
 }
 
 export async function updateGamification({ userId, score, completedAt }: GamificationInput) {
-  // 1. Fetch user
   const user = await userService.getUserById(userId)
   if (!user) return
 
-  // 2. XP: +10 per correct answer, +50 for quiz completion
+  // XP: +10 per correct answer, +50 for quiz completion
   const correct = Math.round(score)
   const xpEarned = correct * 10 + 50
   const prevXP = user.xp || 0
   const newXP = prevXP + xpEarned
   await userService.updateXP(userId, newXP)
 
-  // Level up toast
+  // Show toast if user levels up
   const prevLevel = Math.floor(prevXP / 1000) + 1
   const newLevel = Math.floor(newXP / 1000) + 1
   if (toast && newLevel > prevLevel) {
     toast.success(`🎉 Level Up! You reached Level ${newLevel}!`)
   }
 
-  // 3. Streak: increment if lastDate is yesterday, else reset to 1
+  // Streak logic: increment if lastDate is yesterday, else reset to 1
   const today = new Date(completedAt).toISOString().slice(0, 10)
   let streak = user.streak?.count || 0
   const lastDate = user.streak?.lastDate || ''
   let longest = user.streak?.longest || 0
   const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10)
   if (lastDate === today) {
-    // Already counted today
+    // No change to streak if quiz already completed today
+    // (intentionally left blank)
   } else if (lastDate === yesterday) {
     streak++
   } else {
@@ -84,10 +84,7 @@ export async function updateGamification({ userId, score, completedAt }: Gamific
   await userService.updateStreak(userId, streak, today)
   await userService.setUserFields(userId, { streak: { count: streak, lastDate: today, longest } })
 
-  // 4. Badges: check criteria
-  // Gather stats
-  // For simplicity, fetch all user results and count
-  // (In production, optimize this with a stats doc or cache)
+  // Badge logic: check criteria
   const { userResultService } = await import('../services/userResultService')
   const results = await userResultService.getResultsByUser(userId)
   const totalQuizzes = results.length

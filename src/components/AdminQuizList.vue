@@ -86,9 +86,7 @@ defineEmits<{
 const quizStore = useQuizStore()
 const { quizzes, loading, error } = storeToRefs(quizStore)
 
-onMounted(async () => {
-  // await quizStore.fetchQuizzes()
-})
+onMounted(async () => {})
 
 const handleDelete = async (id: string) => {
   if (confirm('Are you sure you want to delete this quiz? This action cannot be undone.')) {

@@ -9,14 +9,12 @@ export const useQuizStore = defineStore('quiz', () => {
   const error = ref<string | null>(null)
   let unsubscribeQuizzes: (() => void) | null = null
 
-  // Subscribe to published quizzes
   function subscribeToQuizzes() {
     unsubscribeQuizzes = quizService.subscribeToPublishedQuizzes(updatedQuizzes => {
       quizzes.value = updatedQuizzes
     })
   }
 
-  // Cleanup subscription
   onUnmounted(() => {
     if (unsubscribeQuizzes) {
       unsubscribeQuizzes()
@@ -28,7 +26,6 @@ export const useQuizStore = defineStore('quiz', () => {
     error.value = null
     try {
       await quizService.createQuiz(quiz)
-      // No need to manually update quizzes array - Firebase listener will handle it
     } catch (err) {
       error.value = (err as Error).message
     } finally {
@@ -41,7 +38,6 @@ export const useQuizStore = defineStore('quiz', () => {
     error.value = null
     try {
       await quizService.updateQuiz(quiz.id, quiz)
-      // No need to manually update quizzes array - Firebase listener will handle it
     } catch (err) {
       error.value = (err as Error).message
     } finally {
@@ -54,7 +50,6 @@ export const useQuizStore = defineStore('quiz', () => {
     error.value = null
     try {
       await quizService.deleteQuiz(id)
-      // No need to manually update quizzes array - Firebase listener will handle it
     } catch (err) {
       error.value = (err as Error).message
     } finally {
@@ -75,7 +70,6 @@ export const useQuizStore = defineStore('quiz', () => {
     }
   }
 
-  // Initialize subscription
   subscribeToQuizzes()
 
   return {

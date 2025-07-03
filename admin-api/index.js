@@ -12,7 +12,6 @@ console.log('GOOGLE_CREDENTIALS present:', !!process.env.GOOGLE_CREDENTIALS)
 console.log('SMTP_USER:', process.env.SMTP_USER ? 'set' : 'missing')
 console.log('SMTP_PASS is set:', !!process.env.SMTP_PASS)
 
-// Parse GOOGLE_CREDENTIALS from .env
 const rawCreds = process.env.GOOGLE_CREDENTIALS
 if (!rawCreds) {
   throw new Error('GOOGLE_CREDENTIALS environment variable is not set.')
@@ -29,7 +28,6 @@ try {
   throw new Error('Failed to parse GOOGLE_CREDENTIALS: ' + err.message)
 }
 
-// Initialize Firebase Admin SDK
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
 })
@@ -42,41 +40,34 @@ app.use(
       scriptSrc: [
         "'self'",
         "'unsafe-inline'",
-        "https://www.gstatic.com",
-        "https://www.googleapis.com",
-        "https://www.googletagmanager.com",
-        "https://www.google-analytics.com"
+        'https://www.gstatic.com',
+        'https://www.googleapis.com',
+        'https://www.googletagmanager.com',
+        'https://www.google-analytics.com',
       ],
       connectSrc: [
         "'self'",
-        "https://identitytoolkit.googleapis.com",
-        "https://firestore.googleapis.com",
-        "https://securetoken.googleapis.com",
-        "https://www.googleapis.com",
-        "https://firebase.googleapis.com"
+        'https://identitytoolkit.googleapis.com',
+        'https://firestore.googleapis.com',
+        'https://securetoken.googleapis.com',
+        'https://www.googleapis.com',
+        'https://firebase.googleapis.com',
       ],
       imgSrc: [
         "'self'",
-        "data:",
-        "https://firebasestorage.googleapis.com",
-        "https://lh3.googleusercontent.com"
+        'data:',
+        'https://firebasestorage.googleapis.com',
+        'https://lh3.googleusercontent.com',
       ],
-      styleSrc: [
-        "'self'",
-        "'unsafe-inline'",
-        "https://fonts.googleapis.com"
-      ],
-      fontSrc: [
-        "'self'",
-        "https://fonts.gstatic.com"
-      ]
-    }
+      styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+      fontSrc: ["'self'", 'https://fonts.gstatic.com'],
+    },
   })
 )
 app.use(
   rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100, // limit each IP to 100 requests per windowMs
+    windowMs: 15 * 60 * 1000,
+    max: 100,
     standardHeaders: true,
     legacyHeaders: false,
   })
@@ -85,25 +76,23 @@ app.use(cors())
 app.use(morgan('combined'))
 app.use(express.json())
 
-// Debug logs for SMTP credentials
 console.log('SMTP_USER:', process.env.SMTP_USER ? 'set' : 'missing')
 console.log('SMTP_PASS:', process.env.SMTP_PASS ? 'set' : 'missing')
 
-// Configure nodemailer SMTP transport
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
   port: parseInt(process.env.SMTP_PORT, 10),
-  secure: process.env.SMTP_SECURE === 'true', // false for 587, true for 465
+  secure: process.env.SMTP_SECURE === 'true',
   auth: {
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS,
   },
   tls: {
-    rejectUnauthorized: false, // Allow self-signed certificates (development only)
+    rejectUnauthorized: false,
   },
 })
 
-// Middleware to check admin token (to be implemented)
+// Checks for valid admin token and privileges
 async function requireAdmin(req, res, next) {
   const authHeader = req.headers.authorization || ''
   const match = authHeader.match(/^Bearer (.+)$/)
@@ -119,7 +108,6 @@ async function requireAdmin(req, res, next) {
   }
 }
 
-// List all users
 app.get('/api/users', requireAdmin, async (req, res) => {
   const users = []
   let nextPageToken
@@ -138,11 +126,9 @@ app.get('/api/users', requireAdmin, async (req, res) => {
   res.json(users)
 })
 
-// Promote user to admin
 app.post('/api/users/promote', requireAdmin, async (req, res) => {
   const { uid } = req.body
   await admin.auth().setCustomUserClaims(uid, { isAdmin: true })
-  // Send admin confirmation email
   try {
     const userRecord = await admin.auth().getUser(uid)
     if (userRecord.email) {
@@ -169,26 +155,22 @@ app.post('/api/users/promote', requireAdmin, async (req, res) => {
       })
     }
   } catch (e) {
-    // Log but don't fail the request if email fails
     console.error('Failed to send admin confirmation email:', e)
   }
   res.json({ success: true })
 })
 
-// Demote user from admin
 app.post('/api/users/demote', requireAdmin, async (req, res) => {
   const { uid } = req.body
   await admin.auth().setCustomUserClaims(uid, { isAdmin: false })
   res.json({ success: true })
 })
 
-// Delete user
 app.delete('/api/users/:uid', requireAdmin, async (req, res) => {
   await admin.auth().deleteUser(req.params.uid)
   res.json({ success: true })
 })
 
-// Invite user (send password reset link)
 app.post('/api/users/invite', requireAdmin, async (req, res) => {
   const { email, name, isAdmin } = req.body
   try {
@@ -205,7 +187,6 @@ app.post('/api/users/invite', requireAdmin, async (req, res) => {
       await admin.auth().setCustomUserClaims(userRecord.uid, { isAdmin: true })
     }
     const link = await admin.auth().generatePasswordResetLink(email)
-    // Send invite email
     await transporter.sendMail({
       from: process.env.SMTP_FROM || process.env.SMTP_USER,
       to: email,
@@ -232,7 +213,6 @@ app.post('/api/users/invite', requireAdmin, async (req, res) => {
   }
 })
 
-// Self-registration endpoint
 app.post('/api/register', async (req, res) => {
   const { email, password, name, isAdmin } = req.body
   try {
@@ -249,7 +229,7 @@ app.post('/api/register', async (req, res) => {
     if (isAdmin) {
       await admin.auth().setCustomUserClaims(userRecord.uid, { isAdmin: true })
     }
-    // Send email verification link
+    // Send email verification link after registration
     const continueUrl = (process.env.APP_URL || 'http://localhost:5173') + '/verified'
     const link = await admin.auth().generateEmailVerificationLink(email, { url: continueUrl })
     await transporter.sendMail({
@@ -265,34 +245,27 @@ app.post('/api/register', async (req, res) => {
   }
 })
 
-// Serve static files from the frontend build (../dist)
 app.use(express.static(path.join(__dirname, '../dist')))
 
-// Health check endpoint for Render
 app.get('/healthz', (req, res) => {
-  res.status(200).send('OK');
-});
+  res.status(200).send('OK')
+})
 
-// SPA fallback: serve index.html for any non-API route
 app.get('*', (req, res) => {
   if (req.path.startsWith('/api/')) return res.status(404).json({ error: 'API route not found' })
   res.sendFile(path.join(__dirname, '../dist', 'index.html'))
 })
 
-// 🛣️ Registered Express Routes and Middleware
-console.log('🛣️ Registered Express Routes and Middleware:');
-app._router.stack.forEach((layer) => {
+console.log('🛣️ Registered Express Routes and Middleware:')
+app._router.stack.forEach(layer => {
   if (layer.route && layer.route.path) {
-    // Direct route
-    console.log(' →', layer.route.path);
+    console.log(' →', layer.route.path)
   } else if (layer.name === 'router' && layer.regexp) {
-    // Router middleware
-    console.log(' → (router middleware)', layer.regexp);
+    console.log(' → (router middleware)', layer.regexp)
   } else if (layer.name && layer.name !== '<anonymous>') {
-    // Named middleware
-    console.log(' → (middleware)', layer.name);
+    console.log(' → (middleware)', layer.name)
   }
-});
+})
 
 const PORT = process.env.PORT || 4000
 app.listen(PORT, () => {

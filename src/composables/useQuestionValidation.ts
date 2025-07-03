@@ -64,7 +64,7 @@ export function useQuestionValidation(questions: Question[], initial?: Partial<Q
       .map(a => a.trim())
       .filter(Boolean)
     newErrors.value.correctAnswers = corrects.length < 1
-    // New: Check that every correct answer exists in options
+    // Check that every correct answer exists in options
     if (newQ.value.type !== 'short-text') {
       const opts = optionsInput.value
         .split(',')
@@ -79,7 +79,8 @@ export function useQuestionValidation(questions: Question[], initial?: Partial<Q
         newErrors.value.correctAnswersMsg = ''
       }
     } else {
-      newErrors.value.correctAnswersMsg = corrects.length < 1 ? 'At least one correct answer is required.' : ''
+      newErrors.value.correctAnswersMsg =
+        corrects.length < 1 ? 'At least one correct answer is required.' : ''
     }
     newErrors.value.explanation = false
     return (

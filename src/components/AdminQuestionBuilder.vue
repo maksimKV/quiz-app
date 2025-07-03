@@ -93,12 +93,7 @@
       </div>
       <div>
         <label class="block font-semibold mb-1">Explanation (optional)</label>
-        <input
-          v-model="newQ.explanation"
-          type="text"
-          class="input"
-          :disabled="disabled"
-        />
+        <input v-model="newQ.explanation" type="text" class="input" :disabled="disabled" />
       </div>
       <button
         type="button"
@@ -108,20 +103,37 @@
       >
         Add Question
       </button>
-      <div v-if="!canAdd && (newQ.content || optionsInput || answersInput)" class="text-red-500 text-xs mt-2">
+      <div
+        v-if="!canAdd && (newQ.content || optionsInput || answersInput)"
+        class="text-red-500 text-xs mt-2"
+      >
         Please fix the errors above to add the question.
       </div>
     </form>
     <!-- Edit Question Modal -->
     <Teleport to="body">
-      <div v-if="editModalOpen" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
+      <div
+        v-if="editModalOpen"
+        class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50"
+      >
         <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-xl max-w-lg w-full relative">
-          <button class="absolute top-2 right-2 text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 text-2xl font-bold focus:outline-none" @click="closeEditModal">&times;</button>
+          <button
+            class="absolute top-2 right-2 text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 text-2xl font-bold focus:outline-none"
+            @click="closeEditModal"
+          >
+            &times;
+          </button>
           <h3 class="text-xl font-bold mb-4">Edit Question</h3>
           <div class="space-y-2">
             <div>
               <label class="block font-semibold mb-1">Type</label>
-              <select v-model="editQ.type" class="input" required :disabled="disabled" @keydown.enter.prevent>
+              <select
+                v-model="editQ.type"
+                class="input"
+                required
+                :disabled="disabled"
+                @keydown.enter.prevent
+              >
                 <option value="multiple-choice">Multiple Choice</option>
                 <option value="multiple-answer">Multiple Answer</option>
                 <option value="short-text">Short Text</option>
@@ -129,27 +141,76 @@
             </div>
             <div>
               <label class="block font-semibold mb-1">Question</label>
-              <input v-model="editQ.content" type="text" class="input" :class="{ 'border-red-500': editErrors.content || editErrors.duplicate }" required :disabled="disabled" @keydown.enter.prevent />
-              <div v-if="editErrors.content" class="text-red-500 text-xs mt-1">Question content is required.</div>
-              <div v-if="editErrors.duplicate" class="text-red-500 text-xs mt-1">Duplicate question content is not allowed.</div>
+              <input
+                v-model="editQ.content"
+                type="text"
+                class="input"
+                :class="{ 'border-red-500': editErrors.content || editErrors.duplicate }"
+                required
+                :disabled="disabled"
+                @keydown.enter.prevent
+              />
+              <div v-if="editErrors.content" class="text-red-500 text-xs mt-1">
+                Question content is required.
+              </div>
+              <div v-if="editErrors.duplicate" class="text-red-500 text-xs mt-1">
+                Duplicate question content is not allowed.
+              </div>
             </div>
             <div v-if="editQ.type !== 'short-text'">
               <label class="block font-semibold mb-1">Options (comma separated)</label>
-              <input v-model="editOptionsInput" type="text" class="input" :class="{ 'border-red-500': editErrors.options }" :disabled="disabled" @keydown.enter.prevent />
-              <div v-if="editErrors.options" class="text-red-500 text-xs mt-1">At least two unique options are required.</div>
+              <input
+                v-model="editOptionsInput"
+                type="text"
+                class="input"
+                :class="{ 'border-red-500': editErrors.options }"
+                :disabled="disabled"
+                @keydown.enter.prevent
+              />
+              <div v-if="editErrors.options" class="text-red-500 text-xs mt-1">
+                At least two unique options are required.
+              </div>
             </div>
             <div>
               <label class="block font-semibold mb-1">Correct Answer(s) (comma separated)</label>
-              <input v-model="editAnswersInput" type="text" class="input" :class="{ 'border-red-500': editErrors.correctAnswers }" :disabled="disabled" @keydown.enter.prevent />
-              <div v-if="editErrors.correctAnswersMsg" class="text-red-500 text-xs mt-1">{{ editErrors.correctAnswersMsg }}</div>
+              <input
+                v-model="editAnswersInput"
+                type="text"
+                class="input"
+                :class="{ 'border-red-500': editErrors.correctAnswers }"
+                :disabled="disabled"
+                @keydown.enter.prevent
+              />
+              <div v-if="editErrors.correctAnswersMsg" class="text-red-500 text-xs mt-1">
+                {{ editErrors.correctAnswersMsg }}
+              </div>
             </div>
             <div>
               <label class="block font-semibold mb-1">Explanation (optional)</label>
-              <input v-model="editQ.explanation" type="text" class="input" :disabled="disabled" @keydown.enter.prevent />
+              <input
+                v-model="editQ.explanation"
+                type="text"
+                class="input"
+                :disabled="disabled"
+                @keydown.enter.prevent
+              />
             </div>
             <div class="flex gap-2 mt-4">
-              <button type="button" class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700" :disabled="disabled" @click="saveEdit">Save</button>
-              <button type="button" class="px-3 py-1 bg-gray-300 text-gray-800 rounded hover:bg-gray-400" @click="closeEditModal">Cancel</button>
+              <button
+                type="button"
+                class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
+                :disabled="disabled"
+                @click="saveEdit"
+              >
+                Save
+              </button>
+              <button
+                type="button"
+                class="px-3 py-1 bg-gray-300 text-gray-800 rounded hover:bg-gray-400"
+                @click="closeEditModal"
+              >
+                Cancel
+              </button>
             </div>
           </div>
         </div>
@@ -171,7 +232,7 @@ const emit = defineEmits(['update:modelValue'])
 
 const questions = computed({
   get: () => props.modelValue,
-  set: (val) => emit('update:modelValue', val)
+  set: val => emit('update:modelValue', val),
 })
 
 function removeQuestion(id: string) {
@@ -212,13 +273,14 @@ function addQuestion() {
 // Per-question validation for the list
 watch(
   questions,
-  (val: any) => {
-    (val as any[]).forEach((q: any) => {
+  (val: Question[]) => {
+    val.forEach((q: Question) => {
       let error = ''
       if (!q.content) error = 'Question content is required.'
       else if (
-        (val as any[]).filter((qq: any) => qq.content.trim().toLowerCase() === q.content.trim().toLowerCase())
-          .length > 1
+        val.filter(
+          (qq: Question) => qq.content.trim().toLowerCase() === q.content.trim().toLowerCase()
+        ).length > 1
       )
         error = 'Duplicate question content is not allowed.'
       else if (q.type !== 'short-text') {
@@ -234,13 +296,13 @@ watch(
 )
 
 // Add this watcher after useQuestionValidation is set up
-watch([
-  newQ,
-  optionsInput,
-  answersInput
-], () => {
-  validateNew();
-}, { immediate: true, deep: true });
+watch(
+  [newQ, optionsInput, answersInput],
+  () => {
+    validateNew()
+  },
+  { immediate: true, deep: true }
+)
 
 const editModalOpen = ref(false)
 const editQ = reactive<Partial<Question>>({})
@@ -275,7 +337,8 @@ function closeEditModal() {
 function validateEdit() {
   editErrors.content = !editQ.content
   editErrors.duplicate = questions.value.some(
-    (q, idx) => q.content.trim().toLowerCase() === editQ.content?.trim().toLowerCase() && idx !== editIndex
+    (q, idx) =>
+      q.content.trim().toLowerCase() === editQ.content?.trim().toLowerCase() && idx !== editIndex
   )
   if (editQ.type !== 'short-text') {
     const opts = editOptionsInput.value
@@ -305,26 +368,34 @@ function validateEdit() {
       editErrors.correctAnswersMsg = ''
     }
   } else {
-    editErrors.correctAnswersMsg = corrects.length < 1 ? 'At least one correct answer is required.' : ''
+    editErrors.correctAnswersMsg =
+      corrects.length < 1 ? 'At least one correct answer is required.' : ''
   }
 }
 
-watch([
-  () => editQ.content,
-  () => editQ.type,
-  editOptionsInput,
-  editAnswersInput
-], validateEdit, { immediate: true })
+watch([() => editQ.content, () => editQ.type, editOptionsInput, editAnswersInput], validateEdit, {
+  immediate: true,
+})
 
 function saveEdit() {
-  validateEdit();
-  if (editErrors.content || editErrors.duplicate || editErrors.options || editErrors.correctAnswers) return;
+  validateEdit()
+  if (editErrors.content || editErrors.duplicate || editErrors.options || editErrors.correctAnswers)
+    return
   const updatedQ: Question = {
     id: editQ.id!,
     type: editQ.type as QuestionType,
     content: editQ.content!,
-    options: editQ.type !== 'short-text' ? editOptionsInput.value.split(',').map(o => o.trim()).filter(Boolean) : [],
-    correctAnswers: editAnswersInput.value.split(',').map(a => a.trim()).filter(Boolean),
+    options:
+      editQ.type !== 'short-text'
+        ? editOptionsInput.value
+            .split(',')
+            .map(o => o.trim())
+            .filter(Boolean)
+        : [],
+    correctAnswers: editAnswersInput.value
+      .split(',')
+      .map(a => a.trim())
+      .filter(Boolean),
     explanation: editQ.explanation || '',
     _error: undefined,
   }

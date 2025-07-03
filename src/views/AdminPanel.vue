@@ -573,7 +573,7 @@ watch([showAnalytics, quizzes, results], () => {
   }
 })
 
-watch(showQuizForm, (val) => {
+watch(showQuizForm, val => {
   console.log('showQuizForm changed:', val)
 })
 </script>

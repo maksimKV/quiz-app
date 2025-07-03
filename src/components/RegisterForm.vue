@@ -81,7 +81,7 @@ async function onRegister() {
       }),
     })
     if (!res.ok) throw new Error(await res.text())
-    // Try to log the user in immediately after registration
+    // Attempt to log the user in immediately after registration
     try {
       await login(email.value, password.value)
       router.push('/verify-email')

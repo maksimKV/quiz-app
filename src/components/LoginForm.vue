@@ -70,7 +70,7 @@ async function onLogin() {
     await login(email.value, password.value)
     router.push('/profile')
   } catch {
-    // If the error is about verification, show the resend button
+    // Show resend button only if error is about verification
     if (error.value && error.value.includes('verify your email')) {
       showResend.value = true
     }
@@ -83,8 +83,6 @@ async function resendEmail() {
   try {
     await resendVerificationEmail()
     resent.value = true
-  } catch {
-    // error is already set in useAuth
   } finally {
     resending.value = false
   }

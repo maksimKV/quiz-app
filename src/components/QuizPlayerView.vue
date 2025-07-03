@@ -219,7 +219,7 @@ const userResultStore = useUserResultStore()
 const authStore = useAuthStore()
 const { calculateQuestionScore, getPartialExplanation, getOptionClass } = useQuizScoring()
 
-// Add real-time quiz subscription
+// Add real-time quiz subscription and timer/tab protection
 let unsubscribeQuiz: (() => void) | null = null
 const currentQuiz = ref<Quiz>(props.quiz)
 
@@ -229,7 +229,6 @@ const showConfirm = ref(false)
 const saving = ref(false)
 const error = ref<string | null>(null)
 
-// Use review mode if forceReview is true
 if (props.forceReview) showReview.value = true
 
 const answers = computed({
@@ -242,7 +241,6 @@ const answers = computed({
 })
 const _answers = ref<Record<string, string | string[]>>({})
 
-// Timer
 const timerEnabled = computed(() => !!props.quiz.timer && !props.preview)
 const {
   timeLeft,
@@ -255,7 +253,7 @@ const {
   if (!showReview.value) submit()
 })
 
-// Prevent back navigation and detect tab switching
+// Prevent back navigation and detect tab switching for quiz integrity
 function preventBack() {
   window.history.pushState(null, '', window.location.href)
   alert('Back navigation is disabled during the quiz.')
@@ -264,12 +262,10 @@ function preventBack() {
 function handleVisibilityChange() {
   if (document.hidden) {
     alert('Please do not switch tabs or minimize during the quiz!')
-    // You can add logic here to count offenses or auto-submit the quiz
   }
 }
 
 onMounted(() => {
-  // Subscribe to real-time quiz updates
   unsubscribeQuiz = quizService.subscribeToQuiz(props.quiz.id, updatedQuiz => {
     if (updatedQuiz) {
       currentQuiz.value = updatedQuiz
@@ -280,10 +276,8 @@ onMounted(() => {
     startTimer()
   }
 
-  // Prevent back navigation
   window.history.pushState(null, '', window.location.href)
   window.addEventListener('popstate', preventBack)
-  // Detect tab switching
   document.addEventListener('visibilitychange', handleVisibilityChange)
 })
 
@@ -320,12 +314,10 @@ const allAnswered = computed(() =>
   )
 )
 
-// Per-question scoring
 const perQuestionScores = computed<number[]>(() =>
   currentQuiz.value.questions.map(q => calculateQuestionScore(q, answers.value[q.id]))
 )
 
-// Partial credit explanations
 const partialExplanations = computed(() =>
   currentQuiz.value.questions.map(q => getPartialExplanation(q, answers.value[q.id]))
 )
@@ -360,7 +352,6 @@ async function submit() {
   showConfirm.value = false
   stopTimer()
 
-  // Skip saving results in preview or forceReview mode
   if (props.preview || props.forceReview) return
 
   saving.value = true
@@ -381,7 +372,6 @@ async function submit() {
       timeSpent: props.quiz.timer ? props.quiz.timer - timeLeft.value : undefined,
     })
 
-    // Gamification: XP, streaks, badges
     if (authStore.user?.uid || authStore.user?.id) {
       await updateGamification({
         userId: authStore.user.uid || authStore.user.id,
@@ -408,7 +398,6 @@ function restart() {
   nextTick(focusFirstInput)
 }
 
-// Keyboard navigation helpers
 function selectRadio(opt: string) {
   answers.value[currentQuestion.value.id] = opt
 }
@@ -432,7 +421,6 @@ function focusFirstInput() {
   })
 }
 
-// Review helpers
 function isSelected(q: Question, opt: string) {
   if (q.type === 'multiple-answer') {
     return Array.isArray(answers.value[q.id]) && answers.value[q.id].includes(opt)

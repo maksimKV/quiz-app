@@ -8,7 +8,7 @@ export interface User {
   badges?: string[]
   streak?: {
     count: number
-    lastDate: string // ISO date string
+    lastDate: string
     longest?: number
   }
 }
