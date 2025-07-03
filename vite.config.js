@@ -17,4 +17,8 @@ export default defineConfig({
       '/api': 'http://localhost:4000',
     },
   },
+  test: {
+    environment: 'jsdom',
+    setupFiles: './vitest.setup.ts',
+  },
 })

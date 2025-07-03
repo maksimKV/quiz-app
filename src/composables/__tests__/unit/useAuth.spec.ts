@@ -2,8 +2,7 @@ import { describe, it, expect, vi, beforeEach, type MockInstance } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import { useAuth } from '../../useAuth'
 import {} from 'vue'
-// @ts-expect-error: This is required for the mock service
-import * as userService from '../../services/userService'
+import * as userService from '../../../services/userService'
 
 // Mock window and localStorage for Vitest (Node.js environment)
 if (typeof globalThis.window === 'undefined') {
@@ -90,11 +89,10 @@ const sendEmailVerification = firebaseAuth.sendEmailVerification as ReturnType<t
 sendEmailVerification.mockClear()
 
 // Mock userService at the very top so all imports use the mock
-vi.mock('../../services/userService', () => ({
+vi.mock('../../../services/userService', () => ({
   userService: {
     getUserById: vi.fn(),
     setUserFields: vi.fn(),
-    getUserFields: vi.fn(),
   },
 }))
 
@@ -116,6 +114,13 @@ const signInWithEmailAndPassword =
 const getIdTokenResult = firebaseAuth.getIdTokenResult as unknown as MockInstance
 const signOut = firebaseAuth.signOut as unknown as MockInstance
 
+// Replace all userService.userService.getUserById.mockX with getUserByIdMock.mockX
+// Replace all userService.userService.setUserFields.mockX with setUserFieldsMock.mockX
+// Remove all references to getUserFields if not present in actual service
+
+const getUserByIdMock = userService.userService.getUserById as ReturnType<typeof vi.fn>
+const setUserFieldsMock = userService.userService.setUserFields as ReturnType<typeof vi.fn>
+
 describe('useAuth', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
@@ -135,12 +140,12 @@ describe('useAuth', () => {
     createUserWithEmailAndPassword.mockResolvedValue({ user: mockUserObj })
     signInWithEmailAndPassword.mockResolvedValue({ user: mockUserObj })
     sendEmailVerification.mockResolvedValue(undefined)
-    userService.userService.getUserById.mockResolvedValueOnce({
+    getUserByIdMock.mockResolvedValueOnce({
       email: 'test@example.com',
       name: 'Test',
     })
-    userService.userService.setUserFields.mockResolvedValue(undefined)
-    userService.userService.setUserFields({ email: 'test@example.com', name: 'Test' })
+    setUserFieldsMock.mockResolvedValue(undefined)
+    setUserFieldsMock({ email: 'test@example.com', name: 'Test' })
 
     await auth.signup('test@example.com', 'password', 'Test')
     console.log('sendEmailVerification calls:', sendEmailVerification.mock.calls.length)
@@ -165,22 +170,18 @@ describe('useAuth', () => {
     }
     expect(auth.user.value).toMatchObject({ email: 'test@example.com', displayName: 'Test' })
     expect(sendEmailVerification).toHaveBeenCalled()
-    expect(userService.userService.setUserFields).toHaveBeenCalledWith(
+    expect(setUserFieldsMock).toHaveBeenCalledWith(
       expect.objectContaining({ email: 'test@example.com', name: 'Test' })
     )
   })
 
   it('should log in an existing user and set user state', async () => {
     const auth = useAuth()
-    userService.userService.getUserFields.mockResolvedValue({
+    getUserByIdMock.mockResolvedValueOnce({
       name: 'Test',
       email: 'test@example.com',
     })
-    userService.userService.getUserById.mockResolvedValueOnce({
-      name: 'Test',
-      email: 'test@example.com',
-    })
-    userService.userService.setUserFields.mockResolvedValue(undefined)
+    setUserFieldsMock.mockResolvedValue(undefined)
     getIdTokenResult.mockResolvedValue({ claims: {} })
     signInWithEmailAndPassword.mockResolvedValue({
       user: { email: 'test@example.com', name: 'Test' },
@@ -215,12 +216,12 @@ describe('useAuth', () => {
     createUserWithEmailAndPassword.mockResolvedValue({ user: mockUserObj })
     signInWithEmailAndPassword.mockResolvedValue({ user: mockUserObj })
     sendEmailVerification.mockResolvedValue(undefined)
-    userService.userService.getUserById.mockResolvedValue(null)
-    userService.userService.setUserFields.mockClear()
+    getUserByIdMock.mockResolvedValue(null)
+    setUserFieldsMock.mockClear()
     sendEmailVerification.mockClear()
     await signup('test@example.com', 'password', 'Test')
     sendEmailVerification()
-    userService.userService.setUserFields({ email: 'test@example.com', name: 'Test' })
+    setUserFieldsMock({ email: 'test@example.com', name: 'Test' })
     expect(sendEmailVerification).toHaveBeenCalled()
   })
 
@@ -231,11 +232,11 @@ describe('useAuth', () => {
     createUserWithEmailAndPassword.mockResolvedValue({ user: mockUserObj })
     signInWithEmailAndPassword.mockResolvedValue({ user: mockUserObj })
     sendEmailVerification.mockResolvedValue(undefined)
-    userService.userService.getUserById.mockResolvedValue(null)
-    userService.userService.setUserFields.mockClear()
+    getUserByIdMock.mockResolvedValue(null)
+    setUserFieldsMock.mockClear()
     await signup('test@example.com', 'password', 'Test')
-    userService.userService.setUserFields({ email: 'test@example.com', name: 'Test' })
-    expect(userService.userService.setUserFields).toHaveBeenCalledWith(
+    setUserFieldsMock({ email: 'test@example.com', name: 'Test' })
+    expect(setUserFieldsMock).toHaveBeenCalledWith(
       expect.objectContaining({ email: 'test@example.com', name: 'Test' })
     )
   })
