@@ -38,7 +38,8 @@ import { useAuth } from '../composables/useAuth'
 import { useQuizStore } from '../store/quiz'
 import { useUserResultStore } from '../store/userResult'
 import { storeToRefs } from 'pinia'
-import { onMounted } from 'vue'
+import { onMounted, ref, watch } from 'vue'
+import { userService } from '../services/userService'
 
 const quizStore = useQuizStore()
 const userResultStore = useUserResultStore()
@@ -48,12 +49,35 @@ const { results } = storeToRefs(userResultStore)
 const { leaderboard } = useQuizAnalytics(quizzes.value, results.value)
 const { user } = useAuth()
 
+// Map of userId to user info
+const userInfoMap = ref<Record<string, { displayName?: string; email?: string }>>({})
+
 function userInfo(userId: string) {
-  if (user.value && user.value.uid === userId) return user.value
+  if (userInfoMap.value[userId]) return userInfoMap.value[userId]
+  if (user.value && user.value.uid === userId) {
+    return { displayName: user.value.displayName || user.value.email, email: user.value.email }
+  }
   return null
+}
+
+async function fetchUserInfoForLeaderboard() {
+  const ids = leaderboard.value.map(entry => entry.userId)
+  for (const id of ids) {
+    if (!userInfoMap.value[id]) {
+      // Avoid refetching if already loaded
+      const info = await userService.getUserById(id)
+      if (info) {
+        userInfoMap.value[id] = { displayName: info.name || info.email, email: info.email }
+      }
+    }
+  }
 }
 
 onMounted(async () => {
   await userResultStore.fetchAllResults()
+  await fetchUserInfoForLeaderboard()
 })
+
+// Also watch leaderboard for changes (e.g., after results update)
+watch(leaderboard, fetchUserInfoForLeaderboard)
 </script>
