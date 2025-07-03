@@ -6,6 +6,7 @@ const nodemailer = require('nodemailer')
 const helmet = require('helmet')
 const rateLimit = require('express-rate-limit')
 const morgan = require('morgan')
+const path = require('path')
 
 console.log('GOOGLE_CREDENTIALS present:', !!process.env.GOOGLE_CREDENTIALS)
 console.log('SMTP_USER:', process.env.SMTP_USER ? 'set' : 'missing')
@@ -225,6 +226,15 @@ app.post('/api/register', async (req, res) => {
   } catch (err) {
     res.status(400).json({ error: err.message })
   }
+})
+
+// Serve static files from the frontend build (adjust path as needed)
+app.use(express.static(path.join(__dirname, '../dist')))
+
+// SPA fallback: serve index.html for any non-API route
+app.get('*', (req, res) => {
+  if (req.path.startsWith('/api/')) return res.status(404).json({ error: 'API route not found' })
+  res.sendFile(path.join(__dirname, '../dist', 'index.html'))
 })
 
 const PORT = process.env.PORT || 4000
