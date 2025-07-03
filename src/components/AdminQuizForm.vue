@@ -1,5 +1,5 @@
 <template>
-  <form class="space-y-4 bg-white dark:bg-gray-800 p-6 rounded shadow" @submit.prevent="onSubmit">
+  <div class="space-y-4 bg-white dark:bg-gray-800 p-6 rounded shadow">
     <div v-if="error" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
       {{ error }}
     </div>
@@ -9,22 +9,24 @@
         v-model="form.title"
         type="text"
         class="input"
-        :class="{ 'border-red-500': $v.form.title.$error }"
+        :class="{ 'border-red-500': $v.form.title.$error && $v.form.title.$dirty }"
         required
         :disabled="loading"
+        @blur="$v.form.title.$touch()"
       />
-      <div v-if="$v.form.title.$error" class="text-red-500 text-xs mt-1">Title is required.</div>
+      <div v-if="$v.form.title.$error && $v.form.title.$dirty" class="text-red-500 text-xs mt-1">Title is required.</div>
     </div>
     <div>
       <label class="block font-semibold mb-1">Description</label>
       <textarea
         v-model="form.description"
         class="input"
-        :class="{ 'border-red-500': $v.form.description.$error }"
+        :class="{ 'border-red-500': $v.form.description.$error && $v.form.description.$dirty }"
         required
         :disabled="loading"
+        @blur="$v.form.description.$touch()"
       />
-      <div v-if="$v.form.description.$error" class="text-red-500 text-xs mt-1">
+      <div v-if="$v.form.description.$error && $v.form.description.$dirty" class="text-red-500 text-xs mt-1">
         Description is required.
       </div>
     </div>
@@ -44,11 +46,15 @@
         At least one question is required.
       </div>
     </div>
+    <div v-if="$v.$error && $v.$dirty" class="text-red-500 text-xs mt-2">
+      Please fill in all required fields above to save the quiz.
+    </div>
     <div class="flex gap-2 mt-6">
       <button
-        type="submit"
+        type="button"
         class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-        :disabled="$v.$invalid || loading"
+        :disabled="loading"
+        @click="onSubmit"
       >
         <span v-if="loading" class="inline-flex items-center">
           <svg
@@ -84,7 +90,7 @@
         Cancel
       </button>
     </div>
-  </form>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -113,6 +119,7 @@ const form = ref<Partial<Quiz>>({
 })
 
 const tagsInput = ref('')
+const lastQuizId = ref<string | null>(null)
 
 const rules = {
   form: {
@@ -125,17 +132,20 @@ const rules = {
 const $v = useVuelidate(rules, { form })
 
 watch(
-  () => props.modelValue,
-  (val: Quiz | null | undefined) => {
-    if (val) {
-      form.value = { ...val }
-      tagsInput.value = val.tags.join(', ')
-      if (!form.value.questions) form.value.questions = []
-    } else {
+  () => props.modelValue?.id,
+  (id) => {
+    if (id && id !== lastQuizId.value) {
+      const val = props.modelValue
+      form.value = { ...val, questions: val?.questions ? [...val.questions] : [] }
+      tagsInput.value = val?.tags.join(', ') || ''
+      lastQuizId.value = id
+      $v.value.$reset()
+    } else if (!id) {
       form.value = { title: '', description: '', tags: [], published: false, questions: [] }
       tagsInput.value = ''
+      lastQuizId.value = null
+      $v.value.$reset()
     }
-    $v.value.$reset()
   },
   { immediate: true }
 )
@@ -150,10 +160,8 @@ watch(tagsInput, (val: string) => {
 async function onSubmit() {
   $v.value.$touch()
   if ($v.value.$invalid) return
-
   loading.value = true
   error.value = null
-
   try {
     const quizData = {
       ...form.value,
@@ -164,13 +172,11 @@ async function onSubmit() {
       questions: form.value.questions || [],
       timer: form.value.timer || 0,
     }
-
     if (props.modelValue?.id) {
       await quizStore.updateQuiz({ ...quizData, id: props.modelValue.id } as Quiz)
     } else {
       await quizStore.addQuiz(quizData as Omit<Quiz, 'id'>)
     }
-
     emit('save', quizData)
   } catch (err) {
     error.value = (err as Error).message

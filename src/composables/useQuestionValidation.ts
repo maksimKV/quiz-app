@@ -19,6 +19,7 @@ export function useQuestionValidation(questions: Question[], initial?: Partial<Q
     options: false,
     correctAnswers: false,
     explanation: false,
+    correctAnswersMsg: '',
   })
 
   const canAdd = computed(() => {
@@ -41,15 +42,6 @@ export function useQuestionValidation(questions: Question[], initial?: Partial<Q
       .map(a => a.trim())
       .filter(Boolean)
     if (corrects.length < 1) return false
-    // Explanation required if there are incorrect options
-    if (newQ.value.type !== 'short-text') {
-      const opts = optionsInput.value
-        .split(',')
-        .map(o => o.trim())
-        .filter(Boolean)
-      const incorrectOpts = opts.filter(opt => !corrects.includes(opt))
-      if (incorrectOpts.length > 0 && !newQ.value.explanation) return false
-    }
     return true
   })
 
@@ -72,23 +64,29 @@ export function useQuestionValidation(questions: Question[], initial?: Partial<Q
       .map(a => a.trim())
       .filter(Boolean)
     newErrors.value.correctAnswers = corrects.length < 1
-    // Explanation required if there are incorrect options
+    // New: Check that every correct answer exists in options
     if (newQ.value.type !== 'short-text') {
       const opts = optionsInput.value
         .split(',')
         .map(o => o.trim())
         .filter(Boolean)
-      const incorrectOpts = opts.filter(opt => !corrects.includes(opt))
-      newErrors.value.explanation = incorrectOpts.length > 0 && !newQ.value.explanation
+      if (corrects.some(ans => !opts.includes(ans))) {
+        newErrors.value.correctAnswers = true
+        newErrors.value.correctAnswersMsg = 'All correct answers must be present in the options.'
+      } else if (corrects.length < 1) {
+        newErrors.value.correctAnswersMsg = 'At least one correct answer is required.'
+      } else {
+        newErrors.value.correctAnswersMsg = ''
+      }
     } else {
-      newErrors.value.explanation = false
+      newErrors.value.correctAnswersMsg = corrects.length < 1 ? 'At least one correct answer is required.' : ''
     }
+    newErrors.value.explanation = false
     return (
       !newErrors.value.content &&
       !newErrors.value.duplicate &&
       !newErrors.value.options &&
-      !newErrors.value.correctAnswers &&
-      !newErrors.value.explanation
+      !newErrors.value.correctAnswers
     )
   }
 

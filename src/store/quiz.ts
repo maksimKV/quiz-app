@@ -62,6 +62,19 @@ export const useQuizStore = defineStore('quiz', () => {
     }
   }
 
+  async function fetchQuizzes() {
+    loading.value = true
+    error.value = null
+    try {
+      const allQuizzes = await quizService.getAllQuizzes()
+      quizzes.value = allQuizzes
+    } catch (err) {
+      error.value = (err as Error).message
+    } finally {
+      loading.value = false
+    }
+  }
+
   // Initialize subscription
   subscribeToQuizzes()
 
@@ -72,5 +85,6 @@ export const useQuizStore = defineStore('quiz', () => {
     addQuiz,
     updateQuiz,
     deleteQuiz,
+    fetchQuizzes,
   }
 })

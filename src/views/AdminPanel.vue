@@ -214,21 +214,28 @@ function editQuiz(quiz: Quiz) {
   showQuizForm.value = true
 }
 
-function deleteQuiz(quiz: Quiz) {
+async function deleteQuiz(quiz: Quiz) {
   if (confirm(`Are you sure you want to delete "${quiz.title}"?`)) {
-    quizStore.deleteQuiz(quiz.id)
+    await quizStore.deleteQuiz(quiz.id)
+    await quizStore.fetchQuizzes()
   }
 }
 
-function onSave(quiz: Quiz) {
+async function onSave(quiz: Quiz) {
+  console.log('onSave called', quiz)
   if (selectedQuiz.value) {
-    quizStore.updateQuiz(quiz)
+    await quizStore.updateQuiz(quiz)
+  } else {
+    await quizStore.addQuiz(quiz)
   }
+  await quizStore.fetchQuizzes()
   showQuizForm.value = false
+  console.log('showQuizForm set to false (onSave)')
 }
 
 function onCancel() {
   showQuizForm.value = false
+  console.log('showQuizForm set to false (onCancel)')
 }
 
 function exportQuizzes() {
@@ -564,5 +571,9 @@ watch([showAnalytics, quizzes, results], () => {
   } else {
     destroyAllCharts()
   }
+})
+
+watch(showQuizForm, (val) => {
+  console.log('showQuizForm changed:', val)
 })
 </script>
