@@ -136,12 +136,10 @@ import AdminUserManagementModal from '../components/AdminUserManagementModal.vue
 import QuizPlayerView from '../components/QuizPlayerView.vue'
 import type { Quiz } from '../types/quiz'
 import type { Question } from '../types/quiz'
-import type { Chart } from 'chart.js'
 import type { AdminUser } from '../types/user'
 import type { UserResult } from '../types/userResult'
 import { useAuth } from '../composables/useAuth'
-
-/// <reference types="chart.js" />
+import Chart from 'chart.js/auto'
 
 const quizStore = useQuizStore()
 const userResultStore = useUserResultStore()
@@ -400,43 +398,41 @@ watch([showAnalytics, quizzes, results], () => {
       quizzes.value.forEach((quiz: Quiz) => {
         const ctx = document.getElementById('chart-' + quiz.id) as HTMLCanvasElement
         if (ctx) {
-          if (chartInstances[quiz.id]) chartInstances[quiz.id].destroy()
+          const existing = Chart.getChart(ctx)
+          if (existing) existing.destroy()
           const quizResults = results.value.filter((r: UserResult) => r.quizId === quiz.id)
           const bins = Array(11).fill(0)
           quizResults.forEach((r: UserResult) => {
             const idx = Math.round((r.score / quiz.questions.length) * 10)
             bins[Math.min(idx, 10)]++
           })
-          import('chart.js/auto').then(({ default: Chart }) => {
-            chartInstances[quiz.id] = new Chart(ctx, {
-              type: 'bar',
-              data: {
-                labels: Array.from({ length: 11 }, (_, i) => `${i * 10}%`),
-                datasets: [{ label: 'Attempts', data: bins, backgroundColor: '#2563eb' }],
-              },
-              options: { responsive: false, plugins: { legend: { display: false } } },
-            })
+          chartInstances[quiz.id] = new Chart(ctx, {
+            type: 'bar',
+            data: {
+              labels: Array.from({ length: 11 }, (_, i) => `${i * 10}%`),
+              datasets: [{ label: 'Attempts', data: bins, backgroundColor: '#2563eb' }],
+            },
+            options: { responsive: false, plugins: { legend: { display: false } } },
           })
         }
         // Per-question correct % chart
         const ctxQ = document.getElementById('qchart-' + quiz.id) as HTMLCanvasElement
         if (ctxQ) {
-          if (chartInstances['q' + quiz.id]) chartInstances['q' + quiz.id].destroy()
+          const existingQ = Chart.getChart(ctxQ)
+          if (existingQ) existingQ.destroy()
           const labels = quiz.questions.map((q, i) => `Q${i + 1}`)
           const data = quiz.questions.map(q => questionCorrectPct(quiz.id, q.id))
-          import('chart.js/auto').then(({ default: Chart }) => {
-            chartInstances['q' + quiz.id] = new Chart(ctxQ, {
-              type: 'bar',
-              data: {
-                labels,
-                datasets: [{ label: '% Correct', data, backgroundColor: '#059669' }],
-              },
-              options: {
-                responsive: false,
-                plugins: { legend: { display: false } },
-                scales: { y: { min: 0, max: 100 } },
-              },
-            })
+          chartInstances['q' + quiz.id] = new Chart(ctxQ, {
+            type: 'bar',
+            data: {
+              labels,
+              datasets: [{ label: '% Correct', data, backgroundColor: '#059669' }],
+            },
+            options: {
+              responsive: false,
+              plugins: { legend: { display: false } },
+              scales: { y: { min: 0, max: 100 } },
+            },
           })
         }
       })
