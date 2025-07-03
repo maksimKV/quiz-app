@@ -46,8 +46,6 @@ const { quizzes } = storeToRefs(quizStore)
 const { results } = storeToRefs(userResultStore)
 
 const { leaderboard } = useQuizAnalytics(quizzes.value, results.value)
-console.log('Leaderboard.vue leaderboard:', leaderboard.value)
-console.log('Leaderboard.vue results:', results.value)
 const { user } = useAuth()
 
 function userInfo(userId: string) {

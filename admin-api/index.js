@@ -8,10 +8,6 @@ const rateLimit = require('express-rate-limit')
 const morgan = require('morgan')
 const path = require('path')
 
-console.log('GOOGLE_CREDENTIALS present:', !!process.env.GOOGLE_CREDENTIALS)
-console.log('SMTP_USER:', process.env.SMTP_USER ? 'set' : 'missing')
-console.log('SMTP_PASS is set:', !!process.env.SMTP_PASS)
-
 const rawCreds = process.env.GOOGLE_CREDENTIALS
 if (!rawCreds) {
   throw new Error('GOOGLE_CREDENTIALS environment variable is not set.')
@@ -23,7 +19,6 @@ try {
   if (serviceAccount.private_key) {
     serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n')
   }
-  console.log('GOOGLE_CREDENTIALS is valid JSON.')
 } catch (err) {
   throw new Error('Failed to parse GOOGLE_CREDENTIALS: ' + err.message)
 }
@@ -75,9 +70,6 @@ app.use(
 app.use(cors())
 app.use(morgan('combined'))
 app.use(express.json())
-
-console.log('SMTP_USER:', process.env.SMTP_USER ? 'set' : 'missing')
-console.log('SMTP_PASS:', process.env.SMTP_PASS ? 'set' : 'missing')
 
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
@@ -254,17 +246,6 @@ app.get('/healthz', (req, res) => {
 app.get('*', (req, res) => {
   if (req.path.startsWith('/api/')) return res.status(404).json({ error: 'API route not found' })
   res.sendFile(path.join(__dirname, '../dist', 'index.html'))
-})
-
-console.log('🛣️ Registered Express Routes and Middleware:')
-app._router.stack.forEach(layer => {
-  if (layer.route && layer.route.path) {
-    console.log(' →', layer.route.path)
-  } else if (layer.name === 'router' && layer.regexp) {
-    console.log(' → (router middleware)', layer.regexp)
-  } else if (layer.name && layer.name !== '<anonymous>') {
-    console.log(' → (middleware)', layer.name)
-  }
 })
 
 const PORT = process.env.PORT || 4000

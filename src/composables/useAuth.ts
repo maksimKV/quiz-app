@@ -54,7 +54,6 @@ export function useAuth() {
           streak: { count: 0, lastDate: '', longest: 0 },
         })
       }
-      console.log('onAuthStateChanged user:', extendedUser)
     } else {
       user.value = null
       authStore.logout()
@@ -119,7 +118,6 @@ export function useAuth() {
           streak: { count: 0, lastDate: '', longest: 0 },
         })
       }
-      console.log('login user:', extendedUser)
       return cred.user
     } catch (e: unknown) {
       if (e instanceof Error) {

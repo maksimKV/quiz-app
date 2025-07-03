@@ -142,7 +142,6 @@ import { useToast } from 'vue-toastification'
 import { userService } from '../services/userService'
 
 const authStore = useAuthStore()
-console.log('UserProfile.vue user:', authStore.user)
 const name = ref(authStore.user?.name || '')
 const password = ref('')
 const error = ref('')

@@ -14,7 +14,6 @@ export const useUserResultStore = defineStore('userResult', {
       this.loading = true
       try {
         const results = await userResultService.getAllResults()
-        console.log('fetchAllResults got:', results)
         this.results = results
       } catch (err) {
         this.error = (err as Error).message

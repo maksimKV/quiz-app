@@ -88,11 +88,6 @@ router.beforeEach((to, from, next) => {
     const isEmailVerified = user.value && user.value.emailVerified
     const publicPages = ['/login', '/register', '/verified', '/verify-email']
 
-    // Debug logs
-    console.log('Route guard user:', user.value)
-    console.log('Route guard isAdmin:', isAdmin)
-    console.log('Navigating to:', to.path)
-
     // Require email verification for all protected pages
     if (isAuthenticated && !isEmailVerified && !publicPages.includes(to.path)) {
       next('/verify-email')

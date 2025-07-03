@@ -211,7 +211,6 @@ import { useQuizTimer } from '../composables/useQuizTimer'
 import { useQuizScoring } from '../composables/useQuizScoring'
 import { updateGamification } from '../composables/useGamification'
 import { userService } from '../services/userService'
-import { useAuth } from '../composables/useAuth'
 
 const props = defineProps<{
   quiz: Quiz
@@ -224,7 +223,6 @@ defineEmits(['submit'])
 const userResultStore = useUserResultStore()
 const authStore = useAuthStore()
 const { calculateQuestionScore, getPartialExplanation, getOptionClass } = useQuizScoring()
-const { user } = useAuth()
 
 // Add real-time quiz subscription and timer/tab protection
 let unsubscribeQuiz: (() => void) | null = null
@@ -394,9 +392,7 @@ async function submit() {
       completedAt: new Date().toISOString(),
       timeSpent: props.quiz.timer ? props.quiz.timer - timeLeft.value : undefined,
     }
-    console.log('Attempting to add quiz result:', resultObj)
     await userResultStore.addResult(resultObj)
-    console.log('Quiz result successfully added to Firestore.')
     await userResultStore.fetchAllResults()
 
     if (authStore.user?.uid || authStore.user?.id) {
@@ -407,10 +403,8 @@ async function submit() {
       })
       // Fetch updated user data and update local store
       const updatedUser = await userService.getUserById(authStore.user.uid || authStore.user.id)
-      console.log('Fetched updated user after quiz:', updatedUser)
       if (updatedUser) {
         authStore.user = updatedUser
-        user.value = updatedUser
       }
     }
   } catch (err) {

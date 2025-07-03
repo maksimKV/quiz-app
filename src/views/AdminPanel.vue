@@ -222,7 +222,6 @@ async function deleteQuiz(quiz: Quiz) {
 }
 
 async function onSave(quiz: Quiz) {
-  console.log('onSave called', quiz)
   if (selectedQuiz.value) {
     await quizStore.updateQuiz(quiz)
   } else {
@@ -230,12 +229,10 @@ async function onSave(quiz: Quiz) {
   }
   await quizStore.fetchQuizzes()
   showQuizForm.value = false
-  console.log('showQuizForm set to false (onSave)')
 }
 
 function onCancel() {
   showQuizForm.value = false
-  console.log('showQuizForm set to false (onCancel)')
 }
 
 function exportQuizzes() {
@@ -443,8 +440,6 @@ async function fetchUsers() {
     if (!token) {
       throw new Error('No authentication token found. Please log in again.')
     }
-    // Debug: log the token (remove in production)
-    console.log('Auth token:', token)
 
     const res = await fetch('/api/users', {
       headers: { Authorization: `Bearer ${token}` },
@@ -571,9 +566,5 @@ watch([showAnalytics, quizzes, results], () => {
   } else {
     destroyAllCharts()
   }
-})
-
-watch(showQuizForm, val => {
-  console.log('showQuizForm changed:', val)
 })
 </script>
