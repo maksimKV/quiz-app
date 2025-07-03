@@ -273,7 +273,7 @@ async function inviteUser() {
   globalLoading.value = true
   try {
     let token = ''
-    if (firebaseUser.value) {
+    if (firebaseUser.value && typeof firebaseUser.value.getIdToken === 'function') {
       token = await firebaseUser.value.getIdToken()
     }
     const res = await fetch('/api/users/invite', {
@@ -301,7 +301,7 @@ async function fetchUsers() {
   globalLoading.value = true
   try {
     let token = ''
-    if (firebaseUser.value) {
+    if (firebaseUser.value && typeof firebaseUser.value.getIdToken === 'function') {
       token = await firebaseUser.value.getIdToken()
     }
     const res = await fetch('/api/users', {
@@ -324,7 +324,7 @@ async function userMgmtAction(url: string, body: Record<string, unknown> | null,
   globalLoading.value = true
   try {
     let token = ''
-    if (firebaseUser.value) {
+    if (firebaseUser.value && typeof firebaseUser.value.getIdToken === 'function') {
       token = await firebaseUser.value.getIdToken()
     }
     const res = await fetch(url, {
