@@ -139,6 +139,7 @@ import type { Question } from '../types/quiz'
 import type { Chart } from 'chart.js'
 import type { AdminUser } from '../types/user'
 import type { UserResult } from '../types/userResult'
+import { useAuth } from '../composables/useAuth'
 
 /// <reference types="chart.js" />
 
@@ -147,7 +148,8 @@ const userResultStore = useUserResultStore()
 const authStore = useAuthStore()
 const { quizzes } = storeToRefs(quizStore)
 const { results } = storeToRefs(userResultStore)
-const { user, firebaseUser } = storeToRefs(authStore)
+const { user } = storeToRefs(authStore)
+const { authReady, firebaseUser } = useAuth()
 
 const { attempts, avgScore, avgTime, questionCorrectPct, mostMissedOption } = useQuizAnalytics(
   quizzes.value,
@@ -309,6 +311,12 @@ async function fetchUsers() {
     if (firebaseUser.value && typeof firebaseUser.value.getIdToken === 'function') {
       token = await firebaseUser.value.getIdToken()
     }
+    if (!token) {
+      throw new Error('No authentication token found. Please log in again.');
+    }
+    // Debug: log the token (remove in production)
+    console.log('Auth token:', token);
+
     const res = await fetch('/api/users', {
       headers: { Authorization: `Bearer ${token}` },
     })
@@ -374,10 +382,15 @@ onMounted(async () => {
   quizzes.value = initialQuizzes
   // Fetch initial results
   await userResultStore.fetchAllResults()
-  if (showUserManagement.value) fetchUsers()
+  // Wait for auth to be ready before fetching users
+  if (showUserManagement.value) {
+    if (authReady.value && firebaseUser.value) {
+      fetchUsers()
+    }
+  }
 })
-watch(showUserManagement, (val: boolean) => {
-  if (val) fetchUsers()
+watch([showUserManagement, authReady, firebaseUser], ([show, ready, user]) => {
+  if (show && ready && user) fetchUsers()
 })
 
 // Chart rendering logic
