@@ -1,6 +1,6 @@
 <template>
   <div
-    class="p-8 bg-white/90 dark:bg-gray-800/90 rounded-2xl shadow-xl mt-16 border border-gray-200 dark:border-gray-700 w-full min-h-[300px]"
+    class="p-8 bg-white dark:bg-gray-800 rounded-2xl shadow-xl mt-16 border border-gray-200 dark:border-gray-700 w-full max-w-lg mx-auto min-h-[300px]"
   >
     <h2 class="text-2xl font-extrabold mb-6 text-center text-green-700 dark:text-green-300">
       Your Profile
@@ -96,18 +96,23 @@
     </div>
     <div class="mb-4">
       <label class="block font-semibold mb-1 text-gray-700 dark:text-gray-200">Name</label>
-      <input v-model="name" type="text" class="input focus:ring-2 focus:ring-green-400" />
+      <input
+        v-model="name"
+        type="text"
+        class="input focus:ring-2 focus:ring-green-400 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 placeholder-gray-400"
+        placeholder="Enter your name"
+      />
     </div>
     <div class="mb-4">
       <label class="block font-semibold mb-1 text-gray-700 dark:text-gray-200">Email</label>
-      <input :value="mergedUser?.email" type="email" class="input" disabled />
+      <input :value="mergedUser?.email" type="email" class="input bg-gray-100 dark:bg-gray-700" disabled />
     </div>
     <div class="mb-4">
       <label class="block font-semibold mb-1 text-gray-700 dark:text-gray-200">New Password</label>
       <input
         v-model="password"
         type="password"
-        class="input focus:ring-2 focus:ring-green-400"
+        class="input focus:ring-2 focus:ring-green-400 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 placeholder-gray-400"
         placeholder="Leave blank to keep current"
       />
     </div>
@@ -125,7 +130,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useAuth } from '../composables/useAuth'
 import { StarIcon, FireIcon } from '@heroicons/vue/24/solid'
 import { useToast } from 'vue-toastification'
@@ -214,8 +219,18 @@ function shareProfile() {
 function save() {
   // Implementation of save function
 }
+
+watch(
+  () => mergedUser.value.name,
+  (val) => {
+    if (val && name.value !== val) name.value = val
+  },
+  { immediate: true }
+)
 </script>
 
 <style scoped>
-/* Add your styles here */
+.input {
+  @apply w-full px-3 py-2 border rounded bg-gray-50 dark:bg-gray-900 dark:border-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition focus:outline-none;
+}
 </style>
