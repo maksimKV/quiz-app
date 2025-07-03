@@ -35,7 +35,44 @@ admin.initializeApp({
 })
 
 const app = express()
-app.use(helmet())
+app.use(
+  helmet.contentSecurityPolicy({
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: [
+        "'self'",
+        "'unsafe-inline'",
+        "https://www.gstatic.com",
+        "https://www.googleapis.com",
+        "https://www.googletagmanager.com",
+        "https://www.google-analytics.com"
+      ],
+      connectSrc: [
+        "'self'",
+        "https://identitytoolkit.googleapis.com",
+        "https://firestore.googleapis.com",
+        "https://securetoken.googleapis.com",
+        "https://www.googleapis.com",
+        "https://firebase.googleapis.com"
+      ],
+      imgSrc: [
+        "'self'",
+        "data:",
+        "https://firebasestorage.googleapis.com",
+        "https://lh3.googleusercontent.com"
+      ],
+      styleSrc: [
+        "'self'",
+        "'unsafe-inline'",
+        "https://fonts.googleapis.com"
+      ],
+      fontSrc: [
+        "'self'",
+        "https://fonts.gstatic.com"
+      ]
+    }
+  })
+)
 app.use(
   rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
