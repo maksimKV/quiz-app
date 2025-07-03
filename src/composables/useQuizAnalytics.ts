@@ -90,12 +90,15 @@ export function useQuizAnalytics(quizzes: Quiz[], results: UserResult[]) {
   const leaderboard = computed(() => {
     const userScores: Record<string, number> = {}
     results.forEach(r => {
+      console.log('Leaderboard computation - result:', r)
       userScores[r.userId] = (userScores[r.userId] || 0) + r.score
     })
-    return Object.entries(userScores)
+    const leaderboardArr = Object.entries(userScores)
       .map(([userId, totalScore]) => ({ userId, totalScore }))
       .sort((a, b) => b.totalScore - a.totalScore)
       .slice(0, 10)
+    console.log('Leaderboard computation - leaderboardArr:', leaderboardArr)
+    return leaderboardArr
   })
 
   return {

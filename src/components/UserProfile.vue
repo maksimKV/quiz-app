@@ -135,13 +135,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
-import { useAuth } from '../composables/useAuth'
+import { ref, computed, watch, onMounted } from 'vue'
+import { useAuthStore } from '../store/auth'
 import { StarIcon, FireIcon } from '@heroicons/vue/24/solid'
 import { useToast } from 'vue-toastification'
+import { userService } from '../services/userService'
 
-const { user } = useAuth()
-const name = ref(user.value?.displayName || '')
+const authStore = useAuthStore()
+console.log('UserProfile.vue user:', authStore.user)
+const name = ref(authStore.user?.name || '')
 const password = ref('')
 const error = ref('')
 const success = ref(false)
@@ -153,7 +155,7 @@ interface ExtendedUser {
   badges?: string[]
   streak?: { count: number; lastDate: string; longest?: number }
   email?: string
-  displayName?: string
+  name?: string
 }
 
 interface MergedUser {
@@ -169,12 +171,12 @@ interface MergedUser {
 }
 
 const mergedUser = computed<MergedUser>(() => {
-  const userData = (user.value as ExtendedUser) || {
+  const userData = (authStore.user as ExtendedUser) || {
     xp: 0,
     badges: [],
     streak: undefined,
     email: '',
-    displayName: '',
+    name: '',
   }
   const level = Math.floor((userData.xp || 0) / LEVEL_XP) + 1
   const xpToNextLevel = LEVEL_XP - ((userData.xp || 0) % LEVEL_XP)
@@ -189,7 +191,7 @@ const mergedUser = computed<MergedUser>(() => {
     badges: userData.badges || [],
     xp: userData.xp || 0,
     email: userData.email || '',
-    name: userData.displayName || '',
+    name: userData.name || '',
   }
 })
 
@@ -211,9 +213,9 @@ function badgeLabel(badge: string): string {
 const toast = useToast()
 
 function shareProfile() {
-  if (!user.value) return
+  if (!authStore.user) return
   const badgeLabels =
-    ((user.value as ExtendedUser).badges || []).map(badgeLabel).join(', ') || 'No badges yet'
+    ((authStore.user as ExtendedUser).badges || []).map(badgeLabel).join(', ') || 'No badges yet'
   const text = `My Quiz App Profile:\nLevel: ${mergedUser.value.level}\nXP: ${mergedUser.value.xp}\nStreak: ${mergedUser.value.streak?.count || 0} days\nBadges: ${badgeLabels}`
   navigator.clipboard
     .writeText(text)
@@ -232,6 +234,15 @@ watch(
   },
   { immediate: true }
 )
+
+onMounted(async () => {
+  if (authStore.user?.uid) {
+    const freshUser = await userService.getUserById(authStore.user.uid)
+    if (freshUser) {
+      authStore.user = freshUser
+    }
+  }
+})
 </script>
 
 <style scoped>

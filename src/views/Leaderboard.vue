@@ -38,6 +38,7 @@ import { useAuth } from '../composables/useAuth'
 import { useQuizStore } from '../store/quiz'
 import { useUserResultStore } from '../store/userResult'
 import { storeToRefs } from 'pinia'
+import { onMounted } from 'vue'
 
 const quizStore = useQuizStore()
 const userResultStore = useUserResultStore()
@@ -45,10 +46,16 @@ const { quizzes } = storeToRefs(quizStore)
 const { results } = storeToRefs(userResultStore)
 
 const { leaderboard } = useQuizAnalytics(quizzes.value, results.value)
+console.log('Leaderboard.vue leaderboard:', leaderboard.value)
+console.log('Leaderboard.vue results:', results.value)
 const { user } = useAuth()
 
 function userInfo(userId: string) {
   if (user.value && user.value.uid === userId) return user.value
   return null
 }
+
+onMounted(async () => {
+  await userResultStore.fetchAllResults()
+})
 </script>

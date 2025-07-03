@@ -11,6 +11,7 @@ import {
   getIdTokenResult,
 } from 'firebase/auth'
 import { useAuthStore } from '../store/auth'
+import { userService } from '../services/userService'
 
 export function useAuth() {
   const user = ref<User | null>(null)
@@ -39,6 +40,20 @@ export function useAuth() {
         },
         extendedUser
       )
+      // Ensure user document exists in Firestore
+      const existingUserDoc = await userService.getUserById(firebaseUserObj.uid)
+      if (!existingUserDoc) {
+        await userService.setUserFields(firebaseUserObj.uid, {
+          id: firebaseUserObj.uid,
+          uid: firebaseUserObj.uid,
+          name: firebaseUserObj.displayName || firebaseUserObj.email || '',
+          email: firebaseUserObj.email || '',
+          isAdmin,
+          xp: 0,
+          badges: [],
+          streak: { count: 0, lastDate: '', longest: 0 },
+        })
+      }
       console.log('onAuthStateChanged user:', extendedUser)
     } else {
       user.value = null
@@ -90,6 +105,20 @@ export function useAuth() {
         },
         extendedUser
       )
+      // Ensure user document exists in Firestore
+      const existingUserDoc = await userService.getUserById(cred.user.uid)
+      if (!existingUserDoc) {
+        await userService.setUserFields(cred.user.uid, {
+          id: cred.user.uid,
+          uid: cred.user.uid,
+          name: cred.user.displayName || cred.user.email || '',
+          email: cred.user.email || '',
+          isAdmin,
+          xp: 0,
+          badges: [],
+          streak: { count: 0, lastDate: '', longest: 0 },
+        })
+      }
       console.log('login user:', extendedUser)
       return cred.user
     } catch (e: unknown) {

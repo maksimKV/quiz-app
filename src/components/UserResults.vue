@@ -47,7 +47,7 @@
         <template v-else>
           <ul class="space-y-3">
             <li
-              v-for="r in sortedResults"
+              v-for="r in paginatedResults"
               :key="r.id"
               class="flex items-center justify-between bg-white/90 dark:bg-gray-900/90 rounded-xl shadow p-4 cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900 border border-gray-200 dark:border-gray-700 transition w-full"
             >
@@ -62,6 +62,27 @@
             </li>
           </ul>
         </template>
+      </div>
+      <div class="flex justify-center items-center gap-4 mt-6">
+        <button
+          :disabled="currentPage === 1"
+          class="px-4 py-2 rounded-lg border border-gray-300 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 shadow hover:bg-blue-50 dark:hover:bg-blue-900 disabled:opacity-50 disabled:cursor-not-allowed transition"
+          @click="prevPage"
+        >
+          Previous
+        </button>
+        <span
+          class="font-semibold text-blue-700 dark:text-blue-300 bg-blue-100 dark:bg-blue-900 px-3 py-1 rounded-lg shadow"
+        >
+          Page {{ currentPage }} of {{ totalPages }}
+        </span>
+        <button
+          :disabled="currentPage === totalPages"
+          class="px-4 py-2 rounded-lg border border-gray-300 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 shadow hover:bg-blue-50 dark:hover:bg-blue-900 disabled:opacity-50 disabled:cursor-not-allowed transition"
+          @click="nextPage"
+        >
+          Next
+        </button>
       </div>
       <div
         v-if="reviewResult"
@@ -106,6 +127,8 @@ const reviewResult = ref<UserResult | null>(null)
 const loading = ref(false)
 const error = ref<string | null>(null)
 const results = ref<UserResult[]>([])
+const resultsPerPage = 2
+const currentPage = ref(1)
 
 onMounted(async () => {
   loading.value = true
@@ -134,6 +157,13 @@ const sortedResults = computed(() => {
   }
   return arr
 })
+
+const paginatedResults = computed(() => {
+  const start = (currentPage.value - 1) * resultsPerPage
+  return sortedResults.value.slice(start, start + resultsPerPage)
+})
+
+const totalPages = computed(() => Math.ceil(sortedResults.value.length / resultsPerPage))
 
 function quizTitle(quizId: string) {
   return quizzes.value.find(q => q.id === quizId)?.title || 'Unknown Quiz'
@@ -193,5 +223,13 @@ async function importResults(e: Event) {
     loading.value = false
     if (input.form) input.form.reset()
   }
+}
+
+function nextPage() {
+  if (currentPage.value < totalPages.value) currentPage.value++
+}
+
+function prevPage() {
+  if (currentPage.value > 1) currentPage.value--
 }
 </script>

@@ -33,6 +33,9 @@
           ></div>
         </div>
         <div class="mb-4">{{ currentQuestion.content }}</div>
+        <div v-if="!isCurrentAnswered" class="mb-2 text-red-600 font-semibold">
+          Please select at least one answer to continue.
+        </div>
         <div v-if="currentQuestion.type === 'multiple-choice'">
           <div v-for="opt in currentQuestion.options" :key="opt" class="mb-2">
             <label
@@ -106,6 +109,7 @@
             v-if="currentIndex < currentQuiz.questions.length - 1"
             class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
             :tabindex="0"
+            :disabled="!isCurrentAnswered"
             @click="next"
           >
             Next
@@ -206,6 +210,8 @@ import { quizService } from '../services/quizService'
 import { useQuizTimer } from '../composables/useQuizTimer'
 import { useQuizScoring } from '../composables/useQuizScoring'
 import { updateGamification } from '../composables/useGamification'
+import { userService } from '../services/userService'
+import { useAuth } from '../composables/useAuth'
 
 const props = defineProps<{
   quiz: Quiz
@@ -218,6 +224,7 @@ defineEmits(['submit'])
 const userResultStore = useUserResultStore()
 const authStore = useAuthStore()
 const { calculateQuestionScore, getPartialExplanation, getOptionClass } = useQuizScoring()
+const { user } = useAuth()
 
 // Add real-time quiz subscription and timer/tab protection
 let unsubscribeQuiz: (() => void) | null = null
@@ -377,16 +384,20 @@ async function submit() {
     const maxScore = currentQuiz.value.questions.length
     const percentage = Math.round((totalScore / maxScore) * 100)
 
-    await userResultStore.addResult({
+    const resultObj = {
       quizId: currentQuiz.value.id,
       userId: authStore.user?.uid || authStore.user?.id || '',
-      answers: answers.value,
+      answers: JSON.parse(JSON.stringify(answers.value)),
       score: totalScore,
       maxScore,
       percentage,
       completedAt: new Date().toISOString(),
       timeSpent: props.quiz.timer ? props.quiz.timer - timeLeft.value : undefined,
-    })
+    }
+    console.log('Attempting to add quiz result:', resultObj)
+    await userResultStore.addResult(resultObj)
+    console.log('Quiz result successfully added to Firestore.')
+    await userResultStore.fetchAllResults()
 
     if (authStore.user?.uid || authStore.user?.id) {
       await updateGamification({
@@ -394,6 +405,13 @@ async function submit() {
         score: totalScore,
         completedAt: new Date().toISOString(),
       })
+      // Fetch updated user data and update local store
+      const updatedUser = await userService.getUserById(authStore.user.uid || authStore.user.id)
+      console.log('Fetched updated user after quiz:', updatedUser)
+      if (updatedUser) {
+        authStore.user = updatedUser
+        user.value = updatedUser
+      }
     }
   } catch (err) {
     error.value = (err as Error).message
@@ -462,13 +480,22 @@ function isShortTextCorrect(q: Question) {
   return calculateQuestionScore(q, ans) === 1
 }
 
-watch(currentQuestion, (newQ) => {
+watch(currentQuestion, newQ => {
   const ans = answers.value[newQ.id]
   if (newQ.type === 'multiple-choice' && Array.isArray(ans)) {
     answers.value[newQ.id] = ''
   } else if (newQ.type === 'multiple-answer' && !Array.isArray(ans)) {
     answers.value[newQ.id] = []
   }
+})
+
+// Add a computed property to check if the current question is answered
+const isCurrentAnswered = computed(() => {
+  const ans = answers.value[currentQuestion.value.id]
+  if (currentQuestion.value.type === 'multiple-answer') {
+    return Array.isArray(ans) && ans.length > 0
+  }
+  return ans !== undefined && ans !== ''
 })
 </script>
 
