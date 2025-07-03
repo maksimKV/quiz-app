@@ -1,4 +1,4 @@
-export function downloadJson(data: unknown, filename: string) {
+export function downloadJson(data: object, filename: string) {
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
@@ -10,13 +10,13 @@ export function downloadJson(data: unknown, filename: string) {
   URL.revokeObjectURL(url)
 }
 
-export function readJsonFile(file: File): Promise<unknown> {
+export function readJsonFile<T = Record<string, any>>(file: File): Promise<T> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
     reader.onload = event => {
       try {
         const data = JSON.parse(event.target?.result as string)
-        resolve(data)
+        resolve(data as T)
       } catch {
         reject(new Error('Invalid JSON file'))
       }
