@@ -257,13 +257,13 @@ const {
 
 // Prevent back navigation and detect tab switching
 function preventBack() {
-  window.history.pushState(null, '', window.location.href);
-  alert('Back navigation is disabled during the quiz.');
+  window.history.pushState(null, '', window.location.href)
+  alert('Back navigation is disabled during the quiz.')
 }
 
 function handleVisibilityChange() {
   if (document.hidden) {
-    alert('Please do not switch tabs or minimize during the quiz!');
+    alert('Please do not switch tabs or minimize during the quiz!')
     // You can add logic here to count offenses or auto-submit the quiz
   }
 }
@@ -281,17 +281,17 @@ onMounted(() => {
   }
 
   // Prevent back navigation
-  window.history.pushState(null, '', window.location.href);
-  window.addEventListener('popstate', preventBack);
+  window.history.pushState(null, '', window.location.href)
+  window.addEventListener('popstate', preventBack)
   // Detect tab switching
-  document.addEventListener('visibilitychange', handleVisibilityChange);
+  document.addEventListener('visibilitychange', handleVisibilityChange)
 })
 
 onBeforeUnmount(() => {
   stopTimer()
   if (unsubscribeQuiz) unsubscribeQuiz()
-  window.removeEventListener('popstate', preventBack);
-  document.removeEventListener('visibilitychange', handleVisibilityChange);
+  window.removeEventListener('popstate', preventBack)
+  document.removeEventListener('visibilitychange', handleVisibilityChange)
 })
 
 watch(
@@ -414,12 +414,12 @@ function selectRadio(opt: string) {
 }
 
 function toggleCheckbox(opt: string) {
-  let arr = answers.value[currentQuestion.value.id];
-  if (!Array.isArray(arr)) arr = [];
+  let arr = answers.value[currentQuestion.value.id]
+  if (!Array.isArray(arr)) arr = []
   if (arr.includes(opt)) {
-    answers.value[currentQuestion.value.id] = arr.filter((o: string) => o !== opt);
+    answers.value[currentQuestion.value.id] = arr.filter((o: string) => o !== opt)
   } else {
-    answers.value[currentQuestion.value.id] = [...arr, opt];
+    answers.value[currentQuestion.value.id] = [...arr, opt]
   }
 }
 

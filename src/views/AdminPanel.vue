@@ -310,10 +310,10 @@ async function fetchUsers() {
       token = await firebaseUser.value.getIdToken()
     }
     if (!token) {
-      throw new Error('No authentication token found. Please log in again.');
+      throw new Error('No authentication token found. Please log in again.')
     }
     // Debug: log the token (remove in production)
-    console.log('Auth token:', token);
+    console.log('Auth token:', token)
 
     const res = await fetch('/api/users', {
       headers: { Authorization: `Bearer ${token}` },

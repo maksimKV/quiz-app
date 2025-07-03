@@ -22,10 +22,7 @@ module.exports = {
   overrides: [
     {
       files: ['admin-api/**/*.js'],
-      extends: [
-        'eslint:recommended',
-        'plugin:prettier/recommended',
-      ],
+      extends: ['eslint:recommended', 'plugin:prettier/recommended'],
       parserOptions: {
         ecmaVersion: 2021,
         sourceType: 'commonjs',

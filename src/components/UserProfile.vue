@@ -105,7 +105,12 @@
     </div>
     <div class="mb-4">
       <label class="block font-semibold mb-1 text-gray-700 dark:text-gray-200">Email</label>
-      <input :value="mergedUser?.email" type="email" class="input bg-gray-100 dark:bg-gray-700" disabled />
+      <input
+        :value="mergedUser?.email"
+        type="email"
+        class="input bg-gray-100 dark:bg-gray-700"
+        disabled
+      />
     </div>
     <div class="mb-4">
       <label class="block font-semibold mb-1 text-gray-700 dark:text-gray-200">New Password</label>
@@ -222,7 +227,7 @@ function save() {
 
 watch(
   () => mergedUser.value.name,
-  (val) => {
+  val => {
     if (val && name.value !== val) name.value = val
   },
   { immediate: true }

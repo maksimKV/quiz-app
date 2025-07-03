@@ -12,7 +12,10 @@
       <h2 class="text-2xl font-extrabold mb-6 text-blue-700 dark:text-blue-300 text-center">
         Quiz Analytics
       </h2>
-      <div v-if="currentQuiz" class="mb-10 p-4 bg-gray-50 dark:bg-gray-900 rounded-xl shadow border border-gray-200 dark:border-gray-700">
+      <div
+        v-if="currentQuiz"
+        class="mb-10 p-4 bg-gray-50 dark:bg-gray-900 rounded-xl shadow border border-gray-200 dark:border-gray-700"
+      >
         <div class="font-bold mb-2 text-lg text-purple-700 dark:text-purple-300">
           {{ currentQuiz.title }}
         </div>
@@ -27,7 +30,8 @@
           <canvas :id="'qchart-' + currentQuiz.id" height="80" class="mb-2"></canvas>
           <ul class="text-xs space-y-1 mt-2">
             <li v-for="(q, qidx) in paginatedQuestions" :key="q.id" class="w-full">
-              <span class="font-bold">Q{{ questionPage * QUESTIONS_PER_PAGE + qidx + 1 }}:</span> {{ q.content }} —
+              <span class="font-bold">Q{{ questionPage * QUESTIONS_PER_PAGE + qidx + 1 }}:</span>
+              {{ q.content }} —
               <span
                 >Correct:
                 <span class="text-green-600 font-semibold"
@@ -45,18 +49,21 @@
           <div v-if="totalQuestionPages > 1" class="flex justify-center items-center gap-2 mt-2">
             <button
               class="px-2 py-1 text-xs border border-gray-300 rounded bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 transition disabled:opacity-50"
-              @click="goToPrevQuestions"
               :disabled="questionPage === 0"
+              @click="goToPrevQuestions"
             >
               Previous 5
             </button>
             <span class="text-xs text-gray-500">
-              {{ questionPage * QUESTIONS_PER_PAGE + 1 }}–{{ Math.min((questionPage + 1) * QUESTIONS_PER_PAGE, currentQuiz.questions.length) }} of {{ currentQuiz.questions.length }}
+              {{ questionPage * QUESTIONS_PER_PAGE + 1 }}–{{
+                Math.min((questionPage + 1) * QUESTIONS_PER_PAGE, currentQuiz.questions.length)
+              }}
+              of {{ currentQuiz.questions.length }}
             </span>
             <button
               class="px-2 py-1 text-xs border border-gray-300 rounded bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 transition disabled:opacity-50"
-              @click="goToNextQuestions"
               :disabled="questionPage === totalQuestionPages - 1"
+              @click="goToNextQuestions"
             >
               Next 5
             </button>
@@ -70,8 +77,8 @@
                 ? 'bg-gray-300 dark:bg-gray-700 text-gray-800 dark:text-gray-200 cursor-not-allowed'
                 : 'bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400',
             ]"
-            @click="goToPrev"
             :disabled="currentPage === 0"
+            @click="goToPrev"
           >
             Previous
           </button>
@@ -85,8 +92,8 @@
                 ? 'bg-gray-300 dark:bg-gray-700 text-gray-800 dark:text-gray-200 cursor-not-allowed'
                 : 'bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400',
             ]"
-            @click="goToNext"
             :disabled="currentPage === totalPages - 1"
+            @click="goToNext"
           >
             Next
           </button>
@@ -128,7 +135,9 @@ const currentQuiz = computed(() => quizzes.value[currentPage.value] || null)
 // Question pagination state
 const QUESTIONS_PER_PAGE = 5
 const questionPage = ref(0)
-const totalQuestionPages = computed(() => currentQuiz.value ? Math.ceil(currentQuiz.value.questions.length / QUESTIONS_PER_PAGE) : 1)
+const totalQuestionPages = computed(() =>
+  currentQuiz.value ? Math.ceil(currentQuiz.value.questions.length / QUESTIONS_PER_PAGE) : 1
+)
 const paginatedQuestions = computed(() => {
   if (!currentQuiz.value) return []
   const start = questionPage.value * QUESTIONS_PER_PAGE
@@ -147,7 +156,9 @@ function goToNextQuestions() {
   if (questionPage.value < totalQuestionPages.value - 1) questionPage.value++
 }
 // Reset question page when quiz changes
-watch(currentPage, () => { questionPage.value = 0 })
+watch(currentPage, () => {
+  questionPage.value = 0
+})
 
 // Chart rendering logic
 const chartInstances: Record<string, Chart> = {}
