@@ -38,6 +38,30 @@
         Dismiss
       </button>
     </div>
+    <div
+      v-if="pdfGenerating"
+      class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50"
+    >
+      <div class="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-xl flex items-center gap-4">
+        <svg
+          class="animate-spin h-8 w-8 text-orange-600"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+        >
+          <circle
+            class="opacity-25"
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            stroke-width="4"
+          ></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+        </svg>
+        <span class="text-lg font-semibold">Generating PDF, please wait...</span>
+      </div>
+    </div>
     <h1 class="text-3xl font-extrabold mb-8 text-center text-purple-700 dark:text-purple-300">
       Admin Panel
     </h1>
@@ -127,7 +151,6 @@ import { useQuizStore } from '../store/quiz'
 import { useUserResultStore } from '../store/userResult'
 import { useAuthStore } from '../store/auth'
 import { useQuizAnalytics } from '../composables/useQuizAnalytics'
-import { downloadJson, readJsonFile } from '../utils/fileUtils'
 import { quizService } from '../services/quizService'
 import AdminQuizList from '../components/AdminQuizList.vue'
 import AdminQuizForm from '../components/AdminQuizForm.vue'
@@ -135,11 +158,13 @@ import AdminAnalyticsModal from '../components/AdminAnalyticsModal.vue'
 import AdminUserManagementModal from '../components/AdminUserManagementModal.vue'
 import QuizPlayerView from '../components/QuizPlayerView.vue'
 import type { Quiz } from '../types/quiz'
-import type { Question } from '../types/quiz'
 import type { AdminUser } from '../types/user'
 import type { UserResult } from '../types/userResult'
 import { useAuth } from '../composables/useAuth'
 import Chart from 'chart.js/auto'
+import jsPDF from 'jspdf'
+import type { ChartConfiguration, ChartTypeRegistry } from 'chart.js'
+import { readJsonFile } from '../utils/fileUtils'
 
 const quizStore = useQuizStore()
 const userResultStore = useUserResultStore()
@@ -169,6 +194,7 @@ const isAdmin = computed(() => !!(user.value && user.value.isAdmin))
 const globalError = ref('')
 const globalLoading = ref(false)
 const previewQuiz = ref<Quiz | null>(null)
+const pdfGenerating = ref(false)
 
 // Chart instances
 const chartInstances: Record<string, Chart> = {}
@@ -256,19 +282,117 @@ async function importQuizzes(e: Event) {
   }
 }
 
-function exportAnalytics() {
-  const data = quizzes.value.map((quiz: Quiz) => ({
-    title: quiz.title,
-    attempts: attempts(quiz.id),
-    avgScore: avgScore(quiz.id),
-    avgTime: avgTime(quiz.id),
-    perQuestion: quiz.questions.map((q: Question) => ({
-      content: q.content,
-      correctPct: questionCorrectPct(quiz.id, q.id),
-      mostMissed: mostMissedOption(quiz.id, q.id),
-    })),
-  }))
-  downloadJson(data, 'quiz-analytics.json')
+function renderChartImage(chartConfig: ChartConfiguration): Promise<string> {
+  return new Promise(resolve => {
+    const canvas = document.createElement('canvas')
+    canvas.width = 600
+    canvas.height = 300
+    chartConfig.options = chartConfig.options || {}
+    chartConfig.options.animation = {
+      ...chartConfig.options.animation,
+      onComplete: () => {
+        const imgData = canvas.toDataURL('image/png')
+        chart.destroy()
+        resolve(imgData)
+      },
+    }
+    const chart = new Chart(canvas, chartConfig)
+  })
+}
+
+async function exportAnalytics() {
+  pdfGenerating.value = true
+  try {
+    const pdf = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' })
+    const pageWidth = pdf.internal.pageSize.getWidth()
+    const pageHeight = pdf.internal.pageSize.getHeight()
+    const margin = 40
+    const imgWidth = pageWidth - margin * 2
+    let y = margin
+    pdf.setFontSize(20)
+    pdf.text('Quiz Analytics', margin, y)
+    y += 30
+    for (const [idx, quiz] of quizzes.value.entries()) {
+      pdf.setFontSize(16)
+      pdf.text(`${idx + 1}. ${quiz.title}`, margin, y)
+      y += 20
+      pdf.setFontSize(12)
+      pdf.text(
+        `Attempts: ${attempts(quiz.id)}  |  Avg. Score: ${avgScore(quiz.id)}  |  Avg. Time: ${avgTime(quiz.id)}`,
+        margin,
+        y
+      )
+      y += 20
+      // Main chart config
+      const quizResults = results.value.filter(r => r.quizId === quiz.id)
+      const bins = Array(11).fill(0)
+      quizResults.forEach(r => {
+        const idx = Math.round((r.score / quiz.questions.length) * 10)
+        bins[Math.min(idx, 10)]++
+      })
+      const mainChartConfig = {
+        type: 'bar' as keyof ChartTypeRegistry,
+        data: {
+          labels: Array.from({ length: 11 }, (_, i) => `${i * 10}%`),
+          datasets: [{ label: 'Attempts', data: bins, backgroundColor: '#2563eb' }],
+        },
+        options: { responsive: false, plugins: { legend: { display: false } } },
+      }
+      const mainChartImg = await renderChartImage(mainChartConfig)
+      const imgHeight = imgWidth * (300 / 600)
+      if (y + imgHeight > pageHeight - margin) {
+        pdf.addPage()
+        y = margin
+      }
+      pdf.addImage(mainChartImg, 'PNG', margin, y, imgWidth, imgHeight)
+      y += imgHeight + 10
+      // Per-question chart config
+      const labels = quiz.questions.map((q, i) => `Q${i + 1}`)
+      const data = quiz.questions.map(q => questionCorrectPct(quiz.id, q.id))
+      const perQChartConfig = {
+        type: 'bar' as keyof ChartTypeRegistry,
+        data: {
+          labels,
+          datasets: [{ label: '% Correct', data, backgroundColor: '#059669' }],
+        },
+        options: {
+          responsive: false,
+          plugins: { legend: { display: false } },
+          scales: { y: { min: 0, max: 100 } },
+        },
+      }
+      const perQChartImg = await renderChartImage(perQChartConfig)
+      const perQImgHeight = imgWidth * (200 / 600)
+      if (y + perQImgHeight > pageHeight - margin) {
+        pdf.addPage()
+        y = margin
+      }
+      pdf.addImage(perQChartImg, 'PNG', margin, y, imgWidth, perQImgHeight)
+      y += perQImgHeight + 10
+      // Per-question stats
+      pdf.setFontSize(11)
+      for (const [qidx, q] of quiz.questions.entries()) {
+        let line = `Q${qidx + 1}: ${q.content}`
+        line += ` | Correct: ${questionCorrectPct(quiz.id, q.id)}%`
+        const missed = mostMissedOption(quiz.id, q.id)
+        if (missed) line += ` | Most Missed: ${missed}`
+        if (y + 14 > pageHeight - margin) {
+          pdf.addPage()
+          y = margin
+        }
+        pdf.text(line, margin + 10, y)
+        y += 14
+      }
+      y += 20
+      if (y > pageHeight - margin) {
+        pdf.addPage()
+        y = margin
+      }
+    }
+    pdf.save('quiz-analytics.pdf')
+  } finally {
+    pdfGenerating.value = false
+  }
 }
 
 async function inviteUser() {
