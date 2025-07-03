@@ -36,9 +36,11 @@ const router = useRouter()
 onMounted(async () => {
   // Magic link sign-in logic
   if (isSignInWithEmailLink(auth, window.location.href)) {
-    let email = window.localStorage.getItem('emailForSignIn') || ''
+    const email = window.localStorage.getItem('emailForSignIn') || ''
     if (!email) {
-      email = window.prompt('Please provide your email for confirmation') || ''
+      error.value = 'Email is required to complete sign-in. Please log in again.'
+      router.push({ name: 'Login', query: { redirect: router.currentRoute.value.fullPath } })
+      return
     }
     try {
       await signInWithEmailLink(auth, email, window.location.href)

@@ -252,6 +252,14 @@ const {
   parseCorrectAnswers,
 } = useQuestionValidation(questions.value)
 
+function normalizeQuestionContent(content: string): string {
+  return content
+    .toLowerCase()
+    .replace(/[\p{P}\p{S}]/gu, '') // Remove all punctuation and symbols (Unicode-aware)
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
 function addQuestion() {
   if (props.disabled || !validateNew()) return
   const id = Date.now().toString() + Math.random().toString(36).slice(2)
@@ -279,7 +287,8 @@ watch(
       if (!q.content) error = 'Question content is required.'
       else if (
         val.filter(
-          (qq: Question) => qq.content.trim().toLowerCase() === q.content.trim().toLowerCase()
+          (qq: Question) =>
+            normalizeQuestionContent(qq.content || '') === normalizeQuestionContent(q.content || '')
         ).length > 1
       )
         error = 'Duplicate question content is not allowed.'
@@ -338,7 +347,8 @@ function validateEdit() {
   editErrors.content = !editQ.content
   editErrors.duplicate = questions.value.some(
     (q, idx) =>
-      q.content.trim().toLowerCase() === editQ.content?.trim().toLowerCase() && idx !== editIndex
+      normalizeQuestionContent(q.content || '') === normalizeQuestionContent(editQ.content || '') &&
+      idx !== editIndex
   )
   if (editQ.type !== 'short-text') {
     const opts = editOptionsInput.value

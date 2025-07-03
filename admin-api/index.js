@@ -34,7 +34,6 @@ app.use(
       defaultSrc: ["'self'"],
       scriptSrc: [
         "'self'",
-        "'unsafe-inline'",
         'https://www.gstatic.com',
         'https://www.googleapis.com',
         'https://www.googletagmanager.com',
@@ -54,7 +53,7 @@ app.use(
         'https://firebasestorage.googleapis.com',
         'https://lh3.googleusercontent.com',
       ],
-      styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+      styleSrc: ["'self'", 'https://fonts.googleapis.com'],
       fontSrc: ["'self'", 'https://fonts.gstatic.com'],
     },
   })
@@ -73,14 +72,11 @@ app.use(express.json())
 
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
-  port: parseInt(process.env.SMTP_PORT, 10),
-  secure: process.env.SMTP_SECURE === 'true',
+  port: process.env.SMTP_PORT,
+  secure: true,
   auth: {
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS,
-  },
-  tls: {
-    rejectUnauthorized: false,
   },
 })
 

@@ -70,7 +70,43 @@ export const router = createRouter({
 // Route guard for authentication
 router.beforeEach((to, from, next) => {
   const { user, authReady } = useAuth()
-  // Wait for authReady to be true
+  const publicPages = ['/login', '/register', '/verified', '/verify-email']
+  const adminPages = ['/admin', '/analytics', '/user-management']
+
+  function proceed() {
+    const isAuthenticated = !!user.value
+    const isAdmin = user.value && 'isAdmin' in user.value && user.value.isAdmin === true
+    const isEmailVerified = user.value && user.value.emailVerified
+
+    // Require email verification for all protected pages
+    if (isAuthenticated && !isEmailVerified && !publicPages.includes(to.path)) {
+      return next('/verify-email')
+    }
+
+    // Redirect authenticated users away from login/register/verified
+    if (publicPages.includes(to.path) && isAuthenticated) {
+      return next('/profile')
+    }
+
+    // Require authentication for all non-public pages
+    if (!isAuthenticated && !publicPages.includes(to.path)) {
+      return next('/login')
+    }
+
+    // Admin-only routes
+    if (adminPages.includes(to.path) && !isAdmin) {
+      return next('/player')
+    }
+
+    // Authenticated-only route for leaderboard
+    if (to.path === '/leaderboard' && !isAuthenticated) {
+      return next('/login')
+    }
+
+    // Default: allow navigation
+    next()
+  }
+
   if (!authReady.value) {
     const unwatch = watch(authReady, val => {
       if (val) {
@@ -80,38 +116,5 @@ router.beforeEach((to, from, next) => {
     })
   } else {
     proceed()
-  }
-
-  function proceed() {
-    const isAuthenticated = !!user.value
-    const isAdmin = user.value && 'isAdmin' in user.value && user.value.isAdmin === true
-    const isEmailVerified = user.value && user.value.emailVerified
-    const publicPages = ['/login', '/register', '/verified', '/verify-email']
-
-    // Require email verification for all protected pages
-    if (isAuthenticated && !isEmailVerified && !publicPages.includes(to.path)) {
-      next('/verify-email')
-      // Redirect authenticated users away from login/register/verified
-    } else if (to.path === '/login' || to.path === '/register' || to.path === '/verified') {
-      if (isAuthenticated) {
-        next('/profile')
-      } else {
-        next()
-      }
-      // Require authentication for all non-public pages
-    } else if (!isAuthenticated && !publicPages.includes(to.path)) {
-      next('/login')
-      // Admin-only routes
-    } else if (
-      (to.path === '/admin' || to.path === '/analytics' || to.path === '/user-management') &&
-      !isAdmin
-    ) {
-      next('/player')
-      // Authenticated-only route for leaderboard
-    } else if (to.path === '/leaderboard' && !isAuthenticated) {
-      next('/login')
-    } else {
-      next()
-    }
   }
 })
