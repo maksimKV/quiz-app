@@ -173,6 +173,11 @@ const previewQuiz = ref<Quiz | null>(null)
 // Chart instances
 const chartInstances: Record<string, Chart> = {}
 
+function destroyAllCharts() {
+  Object.values(chartInstances).forEach(chart => chart.destroy())
+  Object.keys(chartInstances).forEach(key => delete chartInstances[key])
+}
+
 function onCreate() {
   selectedQuiz.value = null
   showQuizForm.value = true
@@ -423,6 +428,8 @@ watch([showAnalytics, quizzes, results], () => {
         }
       })
     })
+  } else {
+    destroyAllCharts()
   }
 })
 </script>
