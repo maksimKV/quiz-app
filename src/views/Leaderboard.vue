@@ -75,9 +75,8 @@ async function fetchUserInfoForLeaderboard() {
 
 onMounted(async () => {
   await userResultStore.fetchAllResults()
-  await fetchUserInfoForLeaderboard()
 })
 
-// Also watch leaderboard for changes (e.g., after results update)
-watch(leaderboard, fetchUserInfoForLeaderboard)
+// Watch leaderboard for changes and fetch user info
+watch(leaderboard, fetchUserInfoForLeaderboard, { immediate: true })
 </script>
