@@ -61,30 +61,40 @@ export function useAuth() {
     authReady.value = true
   })
 
-  onUnmounted(() => unsubscribe())
+  // --- Cross-tab sync and periodic refresh additions ---
+  let refreshInterval: ReturnType<typeof setInterval> | null = null
 
-  async function signup(email: string, password: string, name?: string) {
-    error.value = null
-    try {
-      const cred = await createUserWithEmailAndPassword(auth, email, password)
-      if (name) {
-        await updateProfile(cred.user, { displayName: name })
-      }
-      await signInWithEmailAndPassword(auth, email, password)
+  // Cross-tab sync: listen for login/logout in other tabs
+  function handleStorageEvent(e: StorageEvent) {
+    if (e.key === 'quiz-app-auth-event') {
+      // Force reload user state
       if (auth.currentUser) {
-        await sendEmailVerification(auth.currentUser)
-      }
-      return cred.user
-    } catch (e: unknown) {
-      if (e instanceof Error) {
-        error.value = e.message
+        auth.currentUser.reload().then(() => {
+          // This will trigger onAuthStateChanged if user changes
+        })
       } else {
-        error.value = String(e)
+        // If logged out in another tab, ensure local logout
+        user.value = null
+        firebaseUser.value = null
+        authStore.logout()
+        authReady.value = true
       }
-      throw e
     }
   }
+  window.addEventListener('storage', handleStorageEvent)
 
+  // Write to localStorage on login/logout to notify other tabs
+  function notifyAuthEvent() {
+    localStorage.setItem('quiz-app-auth-event', Date.now().toString())
+  }
+
+  // Patch logout to notify other tabs
+  async function logout() {
+    await signOut(auth)
+    notifyAuthEvent()
+  }
+
+  // Patch login to notify other tabs
   async function login(email: string, password: string) {
     error.value = null
     loading.value = true
@@ -118,6 +128,7 @@ export function useAuth() {
           streak: { count: 0, lastDate: '', longest: 0 },
         })
       }
+      notifyAuthEvent()
       return cred.user
     } catch (e: unknown) {
       if (e instanceof Error) {
@@ -131,8 +142,48 @@ export function useAuth() {
     }
   }
 
-  async function logout() {
-    await signOut(auth)
+  // Periodic user state refresh (every 5 minutes)
+  function startPeriodicRefresh() {
+    if (refreshInterval) clearInterval(refreshInterval)
+    refreshInterval = setInterval(
+      async () => {
+        if (auth.currentUser) {
+          await auth.currentUser.reload()
+          // If user changed (e.g., logged out elsewhere), onAuthStateChanged will fire
+        }
+      },
+      5 * 60 * 1000
+    ) // 5 minutes
+  }
+  startPeriodicRefresh()
+
+  // Clean up listeners on unmount
+  onUnmounted(() => {
+    unsubscribe()
+    window.removeEventListener('storage', handleStorageEvent)
+    if (refreshInterval) clearInterval(refreshInterval)
+  })
+
+  async function signup(email: string, password: string, name?: string) {
+    error.value = null
+    try {
+      const cred = await createUserWithEmailAndPassword(auth, email, password)
+      if (name) {
+        await updateProfile(cred.user, { displayName: name })
+      }
+      await signInWithEmailAndPassword(auth, email, password)
+      if (auth.currentUser) {
+        await sendEmailVerification(auth.currentUser)
+      }
+      return cred.user
+    } catch (e: unknown) {
+      if (e instanceof Error) {
+        error.value = e.message
+      } else {
+        error.value = String(e)
+      }
+      throw e
+    }
   }
 
   async function resendVerificationEmail() {
