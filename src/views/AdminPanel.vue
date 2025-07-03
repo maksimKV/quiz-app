@@ -192,10 +192,6 @@ function deleteQuiz(quiz: Quiz) {
 function onSave(quiz: Quiz) {
   if (selectedQuiz.value) {
     quizStore.updateQuiz(quiz)
-  } else {
-    const quizData = { ...quiz, id: undefined }
-    delete quizData.id
-    quizStore.addQuiz({ ...quizData, questions: quiz.questions || [] })
   }
   showQuizForm.value = false
 }
