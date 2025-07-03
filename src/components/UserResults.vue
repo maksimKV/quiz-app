@@ -40,29 +40,35 @@
           <input type="file" accept="application/json" class="hidden" @change="importResults" />
         </label>
       </div>
-      <div v-if="sortedResults.length === 0" class="text-gray-500">No results yet.</div>
-      <ul v-else class="space-y-3">
-        <li
-          v-for="r in sortedResults"
-          :key="r.id"
-          class="flex items-center justify-between bg-white/90 dark:bg-gray-900/90 rounded-xl shadow p-4 cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900 border border-gray-200 dark:border-gray-700 transition"
-        >
-          <div>
-            <div class="font-bold text-lg">{{ quizTitle(r.quizId) }}</div>
-            <div class="text-xs text-gray-500">{{ formatDate(r.completedAt) }}</div>
-          </div>
-          <div class="text-sm">
-            Score: <span class="font-mono">{{ r.score }}/{{ r.maxScore }}</span>
-            <span class="text-xs ml-1">({{ Math.round(r.percentage) }}%)</span>
-          </div>
-        </li>
-      </ul>
+      <div class="w-full max-w-3xl mx-auto">
+        <template v-if="sortedResults.length === 0">
+          <div class="text-gray-500">No results yet.</div>
+        </template>
+        <template v-else>
+          <ul class="space-y-3">
+            <li
+              v-for="r in sortedResults"
+              :key="r.id"
+              class="flex items-center justify-between bg-white/90 dark:bg-gray-900/90 rounded-xl shadow p-4 cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900 border border-gray-200 dark:border-gray-700 transition w-full"
+            >
+              <div>
+                <div class="font-bold text-lg">{{ quizTitle(r.quizId) }}</div>
+                <div class="text-xs text-gray-500">{{ formatDate(r.completedAt) }}</div>
+              </div>
+              <div class="text-sm">
+                Score: <span class="font-mono">{{ r.score }}/{{ r.maxScore }}</span>
+                <span class="text-xs ml-1">({{ Math.round(r.percentage) }}%)</span>
+              </div>
+            </li>
+          </ul>
+        </template>
+      </div>
       <div
         v-if="reviewResult"
         class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50"
       >
         <div
-          class="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-xl max-w-2xl w-full relative border border-gray-200 dark:border-gray-700"
+          class="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-xl relative border border-gray-200 dark:border-gray-700"
         >
           <button
             class="absolute top-2 right-2 text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 text-2xl font-bold"

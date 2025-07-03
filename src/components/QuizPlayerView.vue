@@ -145,37 +145,39 @@
       </div>
       <div v-else class="mt-8">
         <h3 class="text-lg font-bold mb-4">Review Answers</h3>
-        <ul class="space-y-4">
-          <li
-            v-for="(q, idx) in currentQuiz.questions"
-            :key="q.id"
-            class="bg-gray-50 dark:bg-gray-900 p-4 rounded shadow"
-          >
-            <div class="flex justify-between items-center mb-1">
-              <div class="font-semibold">Q{{ idx + 1 }}: {{ q.content }}</div>
-              <div class="text-xs font-mono" :class="scoreClass(perQuestionScores[idx], q)">
-                Score: {{ perQuestionScores[idx] }}
+        <div class="w-full max-w-3xl mx-auto">
+          <ul class="space-y-4">
+            <li
+              v-for="(q, idx) in currentQuiz.questions"
+              :key="q.id"
+              class="bg-gray-50 dark:bg-gray-900 p-4 rounded shadow w-full"
+            >
+              <div class="flex justify-between items-center mb-1">
+                <div class="font-semibold">Q{{ idx + 1 }}: {{ q.content }}</div>
+                <div class="text-xs font-mono" :class="scoreClass(perQuestionScores[idx], q)">
+                  Score: {{ perQuestionScores[idx] }}
+                </div>
               </div>
-            </div>
-            <div v-if="q.type !== 'short-text'">
-              <div v-for="opt in q.options" :key="opt" class="ml-4 text-sm">
-                <span :class="optionClass(q, opt)">{{ opt }}</span>
-                <span v-if="isSelected(q, opt)"> (Your answer)</span>
-                <span v-if="q.correctAnswers.includes(opt)"> (Correct)</span>
+              <div v-if="q.type !== 'short-text'">
+                <div v-for="opt in q.options" :key="opt" class="ml-4 text-sm">
+                  <span :class="optionClass(q, opt)">{{ opt }}</span>
+                  <span v-if="isSelected(q, opt)"> (Your answer)</span>
+                  <span v-if="q.correctAnswers.includes(opt)"> (Correct)</span>
+                </div>
               </div>
-            </div>
-            <div v-else class="ml-4 text-sm">
-              <span :class="shortTextClass(q)">{{ answers[q.id] }}</span>
-              <span v-if="isShortTextCorrect(q)"> (Correct)</span>
-            </div>
-            <div v-if="q.explanation" class="ml-4 text-xs text-green-700 mt-2">
-              Explanation: {{ q.explanation }}
-            </div>
-            <div v-if="partialExplanations[idx]" class="ml-4 text-xs text-yellow-700 mt-2">
-              {{ partialExplanations[idx] }}
-            </div>
-          </li>
-        </ul>
+              <div v-else class="ml-4 text-sm">
+                <span :class="shortTextClass(q)">{{ answers[q.id] }}</span>
+                <span v-if="isShortTextCorrect(q)"> (Correct)</span>
+              </div>
+              <div v-if="q.explanation" class="ml-4 text-xs text-green-700 mt-2">
+                Explanation: {{ q.explanation }}
+              </div>
+              <div v-if="partialExplanations[idx]" class="ml-4 text-xs text-yellow-700 mt-2">
+                {{ partialExplanations[idx] }}
+              </div>
+            </li>
+          </ul>
+        </div>
         <div class="flex flex-wrap gap-2 mt-6">
           <button
             class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"

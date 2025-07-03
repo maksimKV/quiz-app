@@ -2,32 +2,34 @@
   <div>
     <h3 class="font-semibold mb-2">Questions</h3>
     <div v-if="questions.length === 0" class="text-gray-500 mb-4">No questions yet.</div>
-    <ul class="space-y-4 mb-4">
-      <li
-        v-for="(q, idx) in questions"
-        :key="q.id"
-        class="bg-gray-50 dark:bg-gray-900 p-4 rounded shadow"
-      >
-        <div class="flex justify-between items-center mb-2">
-          <span class="font-bold">Q{{ idx + 1 }}: {{ q.content }}</span>
-          <button
-            class="text-red-500 hover:underline"
-            :disabled="disabled"
-            @click="removeQuestion(q.id)"
-          >
-            Remove
-          </button>
-        </div>
-        <div class="text-xs text-gray-500 mb-1">Type: {{ q.type }}</div>
-        <div v-if="q.type !== 'short-text'">
-          <div v-for="(opt, oidx) in q.options" :key="oidx" class="ml-4 text-sm">- {{ opt }}</div>
-        </div>
-        <div v-if="q.explanation" class="ml-4 text-xs text-green-700">
-          Explanation: {{ q.explanation }}
-        </div>
-        <div v-if="q._error" class="text-red-500 text-xs mt-1">{{ q._error }}</div>
-      </li>
-    </ul>
+    <div class="w-full max-w-3xl mx-auto">
+      <ul class="space-y-4 mb-4">
+        <li
+          v-for="(q, idx) in questions"
+          :key="q.id"
+          class="bg-gray-50 dark:bg-gray-900 p-4 rounded shadow w-full"
+        >
+          <div class="flex justify-between items-center mb-2">
+            <span class="font-bold">Q{{ idx + 1 }}: {{ q.content }}</span>
+            <button
+              class="text-red-500 hover:underline"
+              :disabled="disabled"
+              @click="removeQuestion(q.id)"
+            >
+              Remove
+            </button>
+          </div>
+          <div class="text-xs text-gray-500 mb-1">Type: {{ q.type }}</div>
+          <div v-if="q.type !== 'short-text'">
+            <div v-for="(opt, oidx) in q.options" :key="oidx" class="ml-4 text-sm">- {{ opt }}</div>
+          </div>
+          <div v-if="q.explanation" class="ml-4 text-xs text-green-700">
+            Explanation: {{ q.explanation }}
+          </div>
+          <div v-if="q._error" class="text-red-500 text-xs mt-1">{{ q._error }}</div>
+        </li>
+      </ul>
+    </div>
     <form class="space-y-2 bg-gray-100 dark:bg-gray-800 p-4 rounded" @submit.prevent="addQuestion">
       <div>
         <label class="block font-semibold mb-1">Type</label>

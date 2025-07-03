@@ -1,6 +1,6 @@
 <template>
   <div
-    class="max-w-md mx-auto p-8 bg-white/90 dark:bg-gray-800/90 rounded-2xl shadow-xl mt-16 border border-gray-200 dark:border-gray-700"
+    class="p-8 bg-white/90 dark:bg-gray-800/90 rounded-2xl shadow-xl mt-16 border border-gray-200 dark:border-gray-700"
   >
     <h2 class="text-2xl font-extrabold mb-6 text-center text-blue-700 dark:text-blue-300">
       Register

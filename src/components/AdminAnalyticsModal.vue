@@ -30,7 +30,7 @@
           <h4 class="font-semibold mb-2 text-sm">Per-Question Stats</h4>
           <canvas :id="'qchart-' + quiz.id" height="80" class="mb-2"></canvas>
           <ul class="text-xs space-y-1 mt-2">
-            <li v-for="(q, qidx) in quiz.questions" :key="q.id">
+            <li v-for="(q, qidx) in quiz.questions" :key="q.id" class="w-full">
               <span class="font-bold">Q{{ qidx + 1 }}:</span> {{ q.content }} —
               <span
                 >Correct:

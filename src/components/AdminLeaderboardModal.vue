@@ -12,23 +12,25 @@
       <h2 class="text-2xl font-extrabold mb-6 text-purple-700 dark:text-purple-300 text-center">
         Leaderboard
       </h2>
-      <ol class="list-decimal pl-8 space-y-2">
-        <li
-          v-for="entry in leaderboard"
-          :key="entry.userId"
-          class="bg-gray-50 dark:bg-gray-900 rounded-lg shadow p-4 flex items-center justify-between border border-gray-200 dark:border-gray-700"
-        >
-          <div>
-            <span class="font-semibold text-lg">{{ userName(entry.userId) }}</span>
-            <span v-if="userInfo(entry.userId)?.email" class="text-xs text-gray-500">
-              ({{ userInfo(entry.userId)?.email }})
-            </span>
-          </div>
-          <div class="text-blue-700 dark:text-blue-300 font-mono font-bold">
-            {{ entry.totalScore }}
-          </div>
-        </li>
-      </ol>
+      <div class="w-full max-w-3xl mx-auto">
+        <ol class="list-decimal pl-8 space-y-2">
+          <li
+            v-for="entry in leaderboard"
+            :key="entry.userId"
+            class="bg-gray-50 dark:bg-gray-900 rounded-lg shadow p-4 flex items-center justify-between border border-gray-200 dark:border-gray-700 w-full"
+          >
+            <div>
+              <span class="font-semibold text-lg">{{ userName(entry.userId) }}</span>
+              <span v-if="userInfo(entry.userId)?.email" class="text-xs text-gray-500">
+                ({{ userInfo(entry.userId)?.email }})
+              </span>
+            </div>
+            <div class="text-blue-700 dark:text-blue-300 font-mono font-bold">
+              {{ entry.totalScore }}
+            </div>
+          </li>
+        </ol>
+      </div>
     </div>
   </div>
 </template>

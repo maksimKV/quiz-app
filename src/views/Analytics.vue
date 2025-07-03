@@ -1,6 +1,6 @@
 <template>
   <div
-    class="max-w-6xl mx-auto p-8 bg-white dark:bg-gray-800 rounded-2xl shadow-xl mt-12 border border-gray-200 dark:border-gray-700"
+    class="p-8 bg-white dark:bg-gray-800 rounded-2xl shadow-xl mt-12 border border-gray-200 dark:border-gray-700"
   >
     <h1 class="text-3xl font-extrabold mb-8 text-center text-purple-700 dark:text-purple-300">
       Quiz Analytics
@@ -23,23 +23,25 @@
         <div v-if="quiz.questions.length" class="mt-4">
           <h4 class="font-semibold mb-2 text-sm">Per-Question Stats</h4>
           <canvas :id="'qchart-' + quiz.id" height="80" class="mb-2"></canvas>
-          <ul class="text-xs space-y-1 mt-2">
-            <li v-for="(q, qidx) in quiz.questions" :key="q.id">
-              <span class="font-bold">Q{{ qidx + 1 }}:</span> {{ q.content }} —
-              <span
-                >Correct:
-                <span class="text-green-600 font-semibold"
-                  >{{ questionCorrectPct(quiz.id, q.id) }}%</span
-                ></span
-              >
-              <span v-if="mostMissedOption(quiz.id, q.id)"
-                >, Most Missed:
-                <span class="text-red-600 font-semibold">{{
-                  mostMissedOption(quiz.id, q.id)
-                }}</span></span
-              >
-            </li>
-          </ul>
+          <div class="w-full max-w-3xl mx-auto">
+            <ul class="text-xs space-y-1 mt-2">
+              <li v-for="(q, qidx) in quiz.questions" :key="q.id" class="w-full">
+                <span class="font-bold">Q{{ qidx + 1 }}:</span> {{ q.content }} —
+                <span
+                  >Correct:
+                  <span class="text-green-600 font-semibold"
+                    >{{ questionCorrectPct(quiz.id, q.id) }}%</span
+                  ></span
+                >
+                <span v-if="mostMissedOption(quiz.id, q.id)"
+                  >, Most Missed:
+                  <span class="text-red-600 font-semibold">{{
+                    mostMissedOption(quiz.id, q.id)
+                  }}</span></span
+                >
+              </li>
+            </ul>
+          </div>
         </div>
       </div>
     </div>

@@ -62,7 +62,7 @@ function handleLogout() {
         </button>
       </nav>
     </div>
-    <main class="max-w-6xl mx-auto p-4 md:p-8">
+    <main class="max-w-2xl sm:max-w-3xl md:max-w-4xl lg:max-w-5xl xl:max-w-6xl mx-auto p-4 md:p-8">
       <router-view />
     </main>
   </div>

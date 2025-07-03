@@ -1,6 +1,6 @@
 <template>
   <div
-    class="max-w-md mx-auto p-8 bg-white/90 dark:bg-gray-800/90 rounded-2xl shadow-xl mt-16 border border-gray-200 dark:border-gray-700"
+    class="p-8 bg-white/90 dark:bg-gray-800/90 rounded-2xl shadow-xl mt-16 border border-gray-200 dark:border-gray-700 w-full min-h-[300px]"
   >
     <h2 class="text-2xl font-extrabold mb-6 text-center text-green-700 dark:text-green-300">
       Your Profile
@@ -40,20 +40,12 @@
       </div>
       <div class="flex items-center gap-3">
         <span class="font-bold text-lg">Streak:</span>
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          :class="['h-6 w-6 text-orange-500', mergedUser.streak?.count >= 3 ? 'animate-pulse' : '']"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M12 3v2m0 0C7.03 5 3 9.03 3 14c0 3.87 3.13 7 7 7s7-3.13 7-7c0-4.97-4.03-9-9-9z"
-          />
-        </svg>
+        <IconFire
+          :class="[
+            'h-6 w-6 text-orange-500',
+            (mergedUser.streak?.count ?? 0) >= 3 ? 'animate-pulse' : '',
+          ]"
+        />
         <span class="text-orange-600 font-mono text-lg">
           {{ mergedUser.streak?.count || 0 }} days
         </span>

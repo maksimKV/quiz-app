@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="w-full max-w-3xl mx-auto">
     <h2 class="text-2xl font-extrabold mb-6 text-blue-700 dark:text-blue-300">Available Quizzes</h2>
     <div v-if="loading" class="text-center py-4">
       <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
@@ -11,11 +11,11 @@
     <div v-else-if="quizzes.length === 0" class="text-gray-500">
       No published quizzes available.
     </div>
-    <ul v-else class="space-y-4">
+    <ul class="space-y-4">
       <li
         v-for="quiz in quizzes"
         :key="quiz.id"
-        class="flex items-center justify-between bg-white/90 dark:bg-gray-900/90 rounded-xl shadow p-6 border border-gray-200 dark:border-gray-700 transition hover:bg-blue-50 dark:hover:bg-blue-900"
+        class="flex items-center justify-between bg-white/90 dark:bg-gray-900/90 rounded-xl shadow p-6 border border-gray-200 dark:border-gray-700 transition hover:bg-blue-50 dark:hover:bg-blue-900 w-full"
       >
         <div>
           <div class="font-bold text-lg">{{ quiz.title }}</div>

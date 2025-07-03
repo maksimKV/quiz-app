@@ -1,6 +1,6 @@
 <template>
   <div
-    class="max-w-6xl mx-auto p-8 bg-white/90 dark:bg-gray-800/90 rounded-2xl shadow-xl mt-12 border border-gray-200 dark:border-gray-700"
+    class="p-8 bg-white/90 dark:bg-gray-800/90 rounded-2xl shadow-xl mt-12 border border-gray-200 dark:border-gray-700"
   >
     <div
       v-if="globalLoading"
