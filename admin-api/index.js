@@ -242,6 +242,21 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '../dist', 'index.html'))
 })
 
+// 🛣️ Registered Express Routes and Middleware
+console.log('🛣️ Registered Express Routes and Middleware:');
+app._router.stack.forEach((layer) => {
+  if (layer.route && layer.route.path) {
+    // Direct route
+    console.log(' →', layer.route.path);
+  } else if (layer.name === 'router' && layer.regexp) {
+    // Router middleware
+    console.log(' → (router middleware)', layer.regexp);
+  } else if (layer.name && layer.name !== '<anonymous>') {
+    // Named middleware
+    console.log(' → (middleware)', layer.name);
+  }
+});
+
 const PORT = process.env.PORT || 4000
 app.listen(PORT, () => {
   console.log(`Admin API listening on port ${PORT}`)
