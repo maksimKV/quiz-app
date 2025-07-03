@@ -1,14 +1,16 @@
 import { ref, computed } from 'vue'
-import type { Question, QuestionType } from '../types/quiz'
+import type { Question } from '../types/quiz'
 
 export function useQuestionValidation(questions: Question[], initial?: Partial<Question>) {
-  const newQ = ref<Partial<Question>>(initial || {
-    type: 'multiple-choice',
-    content: '',
-    options: [],
-    correctAnswers: [],
-    explanation: '',
-  })
+  const newQ = ref<Partial<Question>>(
+    initial || {
+      type: 'multiple-choice',
+      content: '',
+      options: [],
+      correctAnswers: [],
+      explanation: '',
+    }
+  )
   const optionsInput = ref('')
   const answersInput = ref('')
   const newErrors = ref({
@@ -129,4 +131,4 @@ export function useQuestionValidation(questions: Question[], initial?: Partial<Q
     parseOptions,
     parseCorrectAnswers,
   }
-} 
+}

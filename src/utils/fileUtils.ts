@@ -10,7 +10,7 @@ export function downloadJson(data: object, filename: string) {
   URL.revokeObjectURL(url)
 }
 
-export function readJsonFile<T = Record<string, any>>(file: File): Promise<T> {
+export function readJsonFile<T extends object = object>(file: File): Promise<T> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
     reader.onload = event => {

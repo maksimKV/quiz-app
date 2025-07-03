@@ -107,7 +107,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, computed } from 'vue'
+import { ref, watch } from 'vue'
 import type { Question, QuestionType } from '../types/quiz'
 import { useQuestionValidation } from '../composables/useQuestionValidation'
 
