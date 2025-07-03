@@ -228,8 +228,13 @@ app.post('/api/register', async (req, res) => {
   }
 })
 
-// Serve static files from the frontend build (adjust path as needed)
+// Serve static files from the frontend build (../dist)
 app.use(express.static(path.join(__dirname, '../dist')))
+
+// Health check endpoint for Render
+app.get('/healthz', (req, res) => {
+  res.status(200).send('OK');
+});
 
 // SPA fallback: serve index.html for any non-API route
 app.get('*', (req, res) => {
