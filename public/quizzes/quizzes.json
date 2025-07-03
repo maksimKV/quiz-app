@@ -1,0 +1,1008 @@
+[
+  {
+    "id": "4Y5ODDATo7EFUjOCqifO",
+    "tags": [],
+    "description": "Already a space buff? Put your celestial knowledge to the test with this quiz for experienced stargazers, science nerds, and astro-enthusiasts.",
+    "questions": [
+      {
+        "type": "multiple-answer",
+        "content": "Which of the following are types of galaxies?",
+        "options": [
+          "Spiral",
+          "Irregular",
+          "Elliptical",
+          "Solar"
+        ],
+        "_error": "",
+        "explanation": "Spiral, elliptical, and irregular are galaxy classifications. “Solar” refers to stars or solar systems, not galaxies.",
+        "id": "175152554557059psitsmpo7",
+        "correctAnswers": [
+          "Spiral",
+          "Irregular",
+          "Elliptical"
+        ]
+      },
+      {
+        "explanation": "Explanation: Titan is a moon of Saturn. The others are recognized dwarf planets.",
+        "correctAnswers": [
+          "Ceres",
+          "Eris",
+          "Pluto"
+        ],
+        "content": "Which celestial bodies are classified as dwarf planets?",
+        "_error": "",
+        "type": "multiple-answer",
+        "id": "1751525570065pty0zom5wf",
+        "options": [
+          "Ceres",
+          "Eris",
+          "Pluto",
+          "Titan"
+        ]
+      },
+      {
+        "correctAnswers": [
+          "Supernova",
+          "Massive Star Collapse"
+        ],
+        "_error": "",
+        "type": "multiple-answer",
+        "id": "17515256104985mvrdpnxm28",
+        "explanation": "Black holes typically form from the collapse of massive stars after a supernova. Accretion disks form around black holes, not cause them. Asteroid collisions don’t lead to black holes.",
+        "options": [
+          "Supernova",
+          "Massive Star Collapse",
+          "Accretion Disk",
+          "Asteroid Collision"
+        ],
+        "content": "Which of these contribute to the formation of a black hole?"
+      },
+      {
+        "explanation": "Saturn is famous for its rings, but Uranus and Neptune also have faint ring systems. Earth does not.",
+        "type": "multiple-answer",
+        "content": "Which of these planets have rings?",
+        "_error": "",
+        "options": [
+          "Saturn",
+          "Uranus",
+          "Neptune",
+          "Earth"
+        ],
+        "id": "17515256330742muat9jg4yj",
+        "correctAnswers": [
+          "Saturn",
+          "Uranus",
+          "Neptune"
+        ]
+      },
+      {
+        "type": "multiple-answer",
+        "content": "Which of the following are exoplanet detection methods?",
+        "explanation": " All listed methods are valid ways astronomers detect planets orbiting stars outside our solar system.",
+        "correctAnswers": [
+          "Transit Method",
+          "Doppler Spectroscopy",
+          "Direct Imaging",
+          "Gravitational Lensing"
+        ],
+        "_error": "",
+        "id": "17515256591402kjv5kjgfjt",
+        "options": [
+          "Transit Method",
+          "Doppler Spectroscopy",
+          "Direct Imaging",
+          "Gravitational Lensing"
+        ]
+      }
+    ],
+    "title": "Deep Space Mastery: Advanced Astronomy Quiz",
+    "timer": 0,
+    "published": true
+  },
+  {
+    "id": "MRZlPmPgTyvmTjrdlR6u",
+    "description": "Test your global geography knowledge with this 12-question quiz on world capitals. The questions start off easy and get progressively more difficult. Each explanation reveals where the capital’s name comes from—perfect for curious minds!",
+    "title": "From Easy to Elite: Capitals of the World",
+    "questions": [
+      {
+        "id": "1751545273127a38nsi7xpjk",
+        "explanation": "Paris is named after the Parisii, a Gallic tribe that settled on the banks of the Seine during the Iron Age.",
+        "_error": "",
+        "content": "What is the capital of France?",
+        "options": [
+          "Rome",
+          "Berlin",
+          "Paris",
+          "Madrid"
+        ],
+        "correctAnswers": [
+          "Paris"
+        ],
+        "type": "multiple-choice"
+      },
+      {
+        "explanation": "Tokyo means \"Eastern Capital\" (東 = East, 京 = Capital), renamed from Edo in 1868 when it became the imperial capital.",
+        "type": "multiple-choice",
+        "content": "What is the capital of Japan?",
+        "_error": "",
+        "id": "1751545296414v111afqfxfa",
+        "options": [
+          "Kyoto",
+          "Tokyo",
+          "Osaka",
+          "Hiroshima"
+        ],
+        "correctAnswers": [
+          "Tokyo"
+        ]
+      },
+      {
+        "_error": "",
+        "type": "multiple-choice",
+        "correctAnswers": [
+          "Ottawa"
+        ],
+        "explanation": "Ottawa comes from the Algonquin word adawe, meaning \"to trade\", referencing the area's importance as a trading hub.",
+        "options": [
+          "Toronto",
+          "Montreal",
+          "Vancouver",
+          "Ottawa"
+        ],
+        "content": "What is the capital of Canada?",
+        "id": "1751545317493f2854w1xe64"
+      },
+      {
+        "content": "What is the capital of Brazil?",
+        "_error": "",
+        "options": [
+          "Rio de Janeiro",
+          "Brasília",
+          "São Paulo",
+          "Salvador"
+        ],
+        "correctAnswers": [
+          "Brasília"
+        ],
+        "explanation": "Brasília was a planned city, built in the 1950s, and named simply after the country itself—“Brazil’s city.”",
+        "type": "multiple-choice",
+        "id": "1751545336853611tzq7l4g5"
+      },
+      {
+        "correctAnswers": [
+          "Canberra"
+        ],
+        "explanation": "Canberra is derived from the Ngunnawal word Kambera or Canberry, which may mean \"meeting place.\"",
+        "content": "What is the capital of Australia?",
+        "id": "1751545356438b0ru27u6wc4",
+        "type": "multiple-choice",
+        "options": [
+          "Sydney",
+          "Melbourne",
+          "Perth",
+          "Canberra"
+        ],
+        "_error": ""
+      },
+      {
+        "options": [
+          "Istanbul",
+          "Ankara",
+          "Izmir",
+          "Bursa"
+        ],
+        "type": "multiple-choice",
+        "id": "175154538485380279644tfq",
+        "_error": "",
+        "explanation": "Ankara’s name may derive from the ancient Celtic word Ancyra, meaning \"anchor,\" used by Galatian tribes.",
+        "content": "What is the capital of Turkey?",
+        "correctAnswers": [
+          "Ankara"
+        ]
+      },
+      {
+        "content": "What is the capital of Nigeria?",
+        "id": "1751545408694tcoh59tq9sa",
+        "type": "multiple-choice",
+        "options": [
+          "Lagos",
+          "Abuja",
+          "Kano",
+          "Port Harcourt"
+        ],
+        "_error": "",
+        "correctAnswers": [
+          "Abuja"
+        ],
+        "explanation": "Abuja was named after a local Hausa ruler, Abu Ja (or Abu-Ja), and replaced Lagos as the capital in 1991."
+      },
+      {
+        "content": "What is the capital of Kazakhstan?",
+        "explanation": "\"Astana\" simply means \"capital\" in Kazakh. It was briefly renamed Nur-Sultan but reverted to Astana in 2022.",
+        "correctAnswers": [
+          "Astana"
+        ],
+        "_error": "",
+        "type": "multiple-choice",
+        "options": [
+          "Almaty",
+          "Astana",
+          "Nur-Sultan",
+          "Karaganda"
+        ],
+        "id": "1751545429021zkh5ek5k77q"
+      },
+      {
+        "options": [
+          "Yangon",
+          "Mandalay",
+          "Naypyidaw",
+          "Bago"
+        ],
+        "content": "What is the capital of Myanmar?",
+        "correctAnswers": [
+          "Naypyidaw"
+        ],
+        "type": "multiple-choice",
+        "id": "17515454499494oxeo7o89m4",
+        "_error": "",
+        "explanation": "Naypyidaw means “Abode of the King” in Burmese, chosen in 2005 as a centrally located administrative capital."
+      },
+      {
+        "_error": "",
+        "type": "multiple-choice",
+        "explanation": " Thimphu is believed to come from \"Thim\" meaning \"dissolve\" and \"phu\" meaning \"high ground\" or \"hill,\" though the exact etymology is debated.",
+        "content": "What is the capital of Bhutan?",
+        "options": [
+          "Thimphu",
+          "Paro",
+          "Punakha",
+          "Phuentsholing"
+        ],
+        "correctAnswers": [
+          "Thimphu"
+        ],
+        "id": "1751545475972m3tg4bq99td"
+      },
+      {
+        "id": "1751545495005w1ay95ggtzo",
+        "correctAnswers": [
+          "Ouagadougou"
+        ],
+        "_error": "",
+        "explanation": "Ouagadougou comes from the Ninsi language phrase Wogodogo, meaning “where people get honor and respect.”",
+        "content": "What is the capital of Burkina Faso?",
+        "options": [
+          "Bobo-Dioulasso",
+          "Ouagadougou",
+          "Banfora",
+          "Kaya"
+        ],
+        "type": "multiple-choice"
+      },
+      {
+        "_error": "",
+        "content": "What is the capital of Palau?",
+        "explanation": "Ngerulmud is located in Melekeok State on Babeldaob Island. Its name derives from the Palauan words meaning \"place of fermented angelfish",
+        "correctAnswers": [
+          "Ngerulmud"
+        ],
+        "id": "17515455159335honwkohq4r",
+        "type": "multiple-choice",
+        "options": [
+          "Koror",
+          "Ngerulmud",
+          "Melekeok",
+          "Babeldaob"
+        ]
+      }
+    ],
+    "published": true,
+    "timer": 0,
+    "tags": []
+  },
+  {
+    "id": "XdQ4LrHgrmdIWNWQuNS3",
+    "tags": [],
+    "published": true,
+    "timer": 0,
+    "title": "Culinary Craftsmanship: Advanced Gastronomy Quiz",
+    "questions": [
+      {
+        "id": "1751527401984bizln5hlifk",
+        "explanation": "Salsa verde is not a French mother sauce. The others are foundational sauces in French cuisine.",
+        "correctAnswers": [
+          "Béchamel",
+          "Espagnole",
+          "Hollandaise"
+        ],
+        "options": [
+          "Béchamel",
+          "Espagnole",
+          "Hollandaise",
+          "Salsa Verde"
+        ],
+        "type": "multiple-answer",
+        "_error": "",
+        "content": "Which of the following are mother sauces in classical French cuisine?"
+      },
+      {
+        "correctAnswers": [
+          "Kneading",
+          "Water Content",
+          "Salt"
+        ],
+        "explanation": "Kneading and hydration develop gluten. Sugar competes with gluten formation, while salt tightens the gluten network.",
+        "options": [
+          "Kneading",
+          "Water Content",
+          "Sugar",
+          "Salt"
+        ],
+        "type": "multiple-answer",
+        "_error": "",
+        "id": "1751527426333pp061hbobw",
+        "content": "Which of these affect gluten development in dough?"
+      },
+      {
+        "_error": "",
+        "id": "175152744946859znshzavkd",
+        "correctAnswers": [
+          "Lactic Acid",
+          "Alcoholic",
+          "Acetic Acid"
+        ],
+        "content": "Which of the following are types of fermentation",
+        "options": [
+          "Lactic Acid",
+          "Alcoholic",
+          "Acetic Acid",
+          "Oxidative"
+        ],
+        "explanation": "The first three are fermentation types. Oxidative processes are not fermentation.",
+        "type": "multiple-answer"
+      },
+      {
+        "explanation": "Ratatouille is a vegetable dish. The others involve raw or cured fish or meat.",
+        "id": "1751527469741vg6nt1o4ilb",
+        "content": "Which of these dishes traditionally use raw fish?",
+        "_error": "",
+        "options": [
+          "Sashimi",
+          "Ceviche",
+          "Tartare",
+          "Ratatouille"
+        ],
+        "correctAnswers": [
+          "Sashimi",
+          "Ceviche",
+          "Tartare"
+        ],
+        "type": "multiple-answer"
+      },
+      {
+        "explanation": "Umami is the fifth taste. Miso, Parmesan, and tomatoes are rich in glutamates. Sugar is sweet, not umami.",
+        "options": [
+          "Miso",
+          "Parmesan",
+          "Tomato",
+          "Sugar"
+        ],
+        "id": "175152749128198neg4721hl",
+        "_error": "",
+        "type": "multiple-answer",
+        "correctAnswers": [
+          "Miso",
+          "Parmesan",
+          "Tomato"
+        ],
+        "content": "Which of these ingredients are classified as umami-rich?"
+      }
+    ],
+    "description": "Think you're a true gourmet? Challenge your food science and culinary technique knowledge with these tough questions fit for chefs and foodies."
+  },
+  {
+    "id": "iiuD5QPHfnedHquaxKpU",
+    "description": "Just started your magical journey? This quiz is perfect for first-years and casual fans of the Wizarding World. Let’s see how well you know the basics!",
+    "title": "Wands at the Ready: Harry Potter for Beginners",
+    "timer": 0,
+    "questions": [
+      {
+        "id": "17515461280680494xrkvig8r",
+        "content": "Who is the headmaster of Hogwarts for most of the series?",
+        "type": "multiple-answer",
+        "explanation": "Albus Dumbledore is headmaster of Hogwarts for most of the series until his death in Book 6. His name means \"bumblebee\" in Old English.",
+        "correctAnswers": [
+          "Albus Dumbledore"
+        ],
+        "options": [
+          "Severus Snape",
+          "Albus Dumbledore",
+          "Minerva McGonagall",
+          "Gellert Grindelwald"
+        ],
+        "_error": ""
+      },
+      {
+        "correctAnswers": [
+          "Ron",
+          "Percy",
+          "Ginny"
+        ],
+        "type": "multiple-answer",
+        "id": "1751546149787pgb3imqllyk",
+        "explanation": "Neville Longbottom is not a Weasley. The rest are siblings in the large red-headed family.",
+        "content": "Which of these characters are members of the Weasley family?",
+        "options": [
+          "Ron",
+          "Percy",
+          "Neville",
+          "Ginny"
+        ],
+        "_error": ""
+      },
+      {
+        "type": "multiple-answer",
+        "id": "1751546168237gmsz1i924uc",
+        "options": [
+          "9",
+          "10",
+          "9 ¾",
+          "8 ½"
+        ],
+        "explanation": "Platform 9 ¾ at King’s Cross Station is hidden behind a barrier and takes students to Hogwarts.",
+        "_error": "",
+        "correctAnswers": [
+          "9 ¾"
+        ],
+        "content": "What platform must students take to board the Hogwarts Express?"
+      },
+      {
+        "correctAnswers": [
+          "Ravenclaw",
+          "Hufflepuff",
+          "Gryffindor"
+        ],
+        "options": [
+          "Ravenclaw",
+          "Hufflepuff",
+          "Blackwood",
+          "Gryffindor"
+        ],
+        "id": "1751546189179i6mdbxzz93",
+        "explanation": "Blackwood is not a house. The others are the four houses students are sorted into at Hogwarts.",
+        "content": "Which of these are Hogwarts Houses?",
+        "type": "multiple-answer",
+        "_error": ""
+      },
+      {
+        "options": [
+          "Ron",
+          "Hermione",
+          "Draco",
+          "Luna"
+        ],
+        "_error": "",
+        "correctAnswers": [
+          "Ron",
+          "Hermione"
+        ],
+        "explanation": "Ron and Hermione are Harry's closest friends from the beginning. Draco is a rival; Luna is a friend but not part of the core trio.",
+        "content": "Who are Harry’s two best friends?",
+        "type": "multiple-answer",
+        "id": "1751546210092j71elzwdab"
+      },
+      {
+        "_error": "",
+        "options": [
+          "Invisibility Cloak",
+          "Time-Turner",
+          "Mirror of Erised",
+          "Pensieve"
+        ],
+        "content": "What magical object shows your deepest desire?",
+        "type": "multiple-answer",
+        "id": "17515462309638bcv7vve3r8",
+        "correctAnswers": [
+          "Mirror of Erised"
+        ],
+        "explanation": "\"Erised\" is \"desire\" spelled backward. The mirror shows the viewer’s deepest longing."
+      }
+    ],
+    "published": true,
+    "tags": []
+  },
+  {
+    "id": "iociYDfcmN0WzLdSzmGO",
+    "timer": 0,
+    "tags": [],
+    "description": "Love food? Test your basic knowledge of cooking, cuisines, and ingredients from around the world. Perfect for curious eaters and home cooks alike!",
+    "title": "Tasty Basics: A Beginner's Gastronomy Quiz",
+    "questions": [
+      {
+        "id": "17515271699463jwmg1119k1",
+        "explanation": "Feta is a cheese, not a pasta. The rest are popular pasta shapes.",
+        "content": "Which of the following are common pasta shapes?",
+        "options": [
+          "Penne",
+          "Fusilli",
+          "Feta",
+          "Spaghetti"
+        ],
+        "type": "multiple-answer",
+        "correctAnswers": [
+          "Penne",
+          "Fusilli",
+          "Spaghetti"
+        ],
+        "_error": ""
+      },
+      {
+        "id": "1751527197729v7arom1bwdn",
+        "explanation": "Olive oil is a plant-based fat. The others are made from milk.",
+        "content": "Which of these are dairy products?",
+        "type": "multiple-answer",
+        "_error": "",
+        "options": [
+          "Yogurt",
+          "Butter",
+          "Olive Oil",
+          "Milk"
+        ],
+        "correctAnswers": [
+          "Yogurt",
+          "Butter",
+          "Milk"
+        ]
+      },
+      {
+        "correctAnswers": [
+          "Italy",
+          "Japan",
+          "Germany"
+        ],
+        "type": "multiple-answer",
+        "_error": "",
+        "options": [
+          "Italy",
+          "Japan",
+          "Germany",
+          "Antarctica"
+        ],
+        "id": "1751527222201rxev88d5k2",
+        "content": "Which countries are famous for their national cuisines?",
+        "explanation": "Antarctica doesn't have a native cuisine; the others are known for distinctive culinary traditions."
+      },
+      {
+        "content": "Which cooking methods use dry heat?",
+        "_error": "",
+        "type": "multiple-answer",
+        "id": "17515272462074shzzp9nisj",
+        "options": [
+          "Roasting",
+          "Baking",
+          "Frying",
+          "Boiling"
+        ],
+        "explanation": "Boiling uses water (moist heat). The rest use dry heat.",
+        "correctAnswers": [
+          "Roasting",
+          "Baking",
+          "Frying"
+        ]
+      },
+      {
+        "correctAnswers": [
+          "Flour",
+          "Sugar",
+          "Yeast"
+        ],
+        "id": "1751527272813yf78zl74t",
+        "type": "multiple-answer",
+        "explanation": "Soy sauce is used in cooking, not baking. The others are essential baking ingredients.",
+        "content": "Which of the following ingredients are commonly used in baking?",
+        "_error": "",
+        "options": [
+          "Flour",
+          "Sugar",
+          "Yeast",
+          "Soy Sauce"
+        ]
+      }
+    ],
+    "published": true
+  },
+  {
+    "id": "juW2pd9YpvpVkcGV8tbj",
+    "timer": 0,
+    "title": "Stargazing Basics: Astronomy for Beginners",
+    "questions": [
+      {
+        "type": "multiple-answer",
+        "id": "17515253447598qj0rl6kkpj",
+        "explanation": "Pluto was reclassified as a dwarf planet, and the Moon is Earth’s natural satellite.",
+        "correctAnswers": [
+          "Mars",
+          "Venus"
+        ],
+        "options": [
+          "Mars",
+          "Pluto",
+          "Moon",
+          "Venus"
+        ],
+        "content": "Which of the following are planets in our Solar System?",
+        "_error": ""
+      },
+      {
+        "_error": "",
+        "explanation": "Stars, including our Sun, emit their own light. Planets and moons reflect it.",
+        "options": [
+          "Stars",
+          "Planets",
+          "Moons",
+          "Suns"
+        ],
+        "correctAnswers": [
+          "Stars",
+          "Suns"
+        ],
+        "content": "Which objects emit their own light?",
+        "type": "multiple-answer",
+        "id": "17515253855595qw66ebsvlh"
+      },
+      {
+        "id": "1751525410151fhqnv1i6nff",
+        "type": "multiple-answer",
+        "options": [
+          "Full Moon",
+          "Half Moon",
+          "Crescent Moon",
+          "Red Moon"
+        ],
+        "correctAnswers": [
+          "Full Moon",
+          "Crescent Moon"
+        ],
+        "_error": "",
+        "explanation": "Full and crescent are real phases. \"Half moon\" is commonly used but astronomically it's called \"first or last quarter.\" \"Red Moon\" is a nickname during eclipses, not a phase.",
+        "content": "Which of these are phases of the Moon?"
+      },
+      {
+        "options": [
+          "Venus",
+          "Mercury",
+          "Mars",
+          "Jupiter"
+        ],
+        "explanation": "Mercury and Venus are inner planets, orbiting closer to the Sun than Earth.",
+        "correctAnswers": [
+          "Venus",
+          "Mercury"
+        ],
+        "type": "multiple-answer",
+        "content": "Which of these planets are closer to the Sun than Earth?",
+        "id": "1751525436207ny978t18dt8",
+        "_error": ""
+      },
+      {
+        "explanation": "Hubble is a telescope. The others are real constellations or parts of them.",
+        "id": "17515254592790em92klz6xc9",
+        "type": "multiple-answer",
+        "content": "Which of these are visible constellations in the night sky?",
+        "options": [
+          "Orion",
+          "Big Dipper",
+          "Hubble",
+          "Pegasus"
+        ],
+        "_error": "",
+        "correctAnswers": [
+          "Orion",
+          "Big Dipper",
+          "Pegasus"
+        ]
+      }
+    ],
+    "tags": [],
+    "description": "Curious about space? Start your journey with this beginner-level astronomy quiz. Great for all ages and no telescope required!",
+    "published": true
+  },
+  {
+    "id": "nwnT24o51r9Dl4B7HtqW",
+    "questions": [
+      {
+        "correctAnswers": [
+          "Alastor Moody",
+          "Sirius Black",
+          "Remus Lupin"
+        ],
+        "content": "Which characters were in the original Order of the Phoenix?",
+        "type": "multiple-answer",
+        "options": [
+          "Alastor Moody",
+          "Sirius Black",
+          "Remus Lupin",
+          "Horace Slughorn"
+        ],
+        "explanation": "Slughorn was not part of the Order. The others were core members fighting Voldemort in the First Wizarding War.",
+        "id": "1751546282266h90zl78igid",
+        "_error": ""
+      },
+      {
+        "_error": "",
+        "content": "Who gave Harry his first broomstick?",
+        "id": "1751546301018c69tolhstgi",
+        "type": "multiple-answer",
+        "options": [
+          "Hagrid",
+          "Dumbledore",
+          "McGonagall",
+          "Sirius Black"
+        ],
+        "correctAnswers": [
+          "McGonagall"
+        ],
+        "explanation": "Professor McGonagall gave Harry a Nimbus 2000 after spotting his flying talent in his first year."
+      },
+      {
+        "type": "multiple-answer",
+        "correctAnswers": [
+          "Diary",
+          "Ring",
+          "Locket"
+        ],
+        "_error": "",
+        "content": "Which Horcruxes were destroyed throughout the series?",
+        "explanation": "The sword (of Gryffindor) is a tool used to destroy Horcruxes, not one itself. The diary, ring, and locket were all Horcruxes.",
+        "id": "175154632536293n7znfxhq",
+        "options": [
+          "Diary",
+          "Ring",
+          "Locket",
+          "Sword"
+        ]
+      },
+      {
+        "correctAnswers": [
+          "Imperius",
+          "Crucio",
+          "Avada Kedavra"
+        ],
+        "id": "17515463475463jxb7cj89v5",
+        "_error": "",
+        "type": "multiple-answer",
+        "content": "What are the Unforgivable Curses?",
+        "options": [
+          "Imperius",
+          "Crucio",
+          "Lumos",
+          "Avada Kedavra"
+        ],
+        "explanation": "These three spells are banned and punishable by life in Azkaban. \"Lumos\" is a simple light spell."
+      },
+      {
+        "options": [
+          "Otter",
+          "Cat",
+          "Rabbit",
+          "Phoenix"
+        ],
+        "_error": "",
+        "correctAnswers": [
+          "Otter"
+        ],
+        "explanation": "Hermione's Patronus is an otter — J.K. Rowling’s favorite animal.",
+        "id": "1751546366130wcsprmzzsi",
+        "type": "multiple-answer",
+        "content": "What form does Hermione’s Patronus take?"
+      },
+      {
+        "type": "multiple-answer",
+        "_error": "",
+        "explanation": "Severus Snape was head of Slytherin during most of Harry's schooling. Slughorn took over briefly in Book 6.",
+        "content": "Who was the head of Slytherin house during Harry’s time at Hogwarts?",
+        "correctAnswers": [
+          "Snape"
+        ],
+        "options": [
+          "Snape",
+          "Slughorn",
+          "Umbridge",
+          "Binns"
+        ],
+        "id": "175154638257003cswkvynry1"
+      }
+    ],
+    "published": true,
+    "tags": [],
+    "description": "Think you know every spell, secret, and subplot in the Harry Potter universe? This quiz will challenge even the most devoted fans of the Wizarding World.",
+    "title": "N.E.W.T. Level: The Ultimate Potterhead Quiz",
+    "timer": 0
+  },
+  {
+    "id": "sLFbk8gph2jYImQp2mle",
+    "timer": 0,
+    "questions": [
+      {
+        "id": "1751524120700640st78lywt",
+        "type": "multiple-answer",
+        "content": "Which of the following animals are mammals?",
+        "options": [
+          "Crocodile",
+          "Whale",
+          "Bat",
+          "Ostrich"
+        ],
+        "correctAnswers": [
+          "Whale",
+          "Bat"
+        ],
+        "explanation": "Mammals are warm-blooded animals with fur or hair that nurse their young with milk. Whales and bats are both mammals, while crocodiles are reptiles and ostriches are birds.",
+        "_error": ""
+      },
+      {
+        "id": "17515241572195cx3o4nxvu6",
+        "type": "multiple-answer",
+        "content": "Which animals are capable of flight?",
+        "options": [
+          "Penguin",
+          "Bat",
+          "Eagle",
+          "Ostrich"
+        ],
+        "correctAnswers": [
+          "Bat",
+          "Eagle"
+        ],
+        "explanation": "Eagles and bats can fly. Penguins and ostriches are flightless birds.",
+        "_error": ""
+      },
+      {
+        "id": "1751524187763p3tddcmr78",
+        "type": "multiple-answer",
+        "content": "Which animals are carnivores?",
+        "options": [
+          "Tiger",
+          "Cow",
+          "Shark",
+          "Panda"
+        ],
+        "correctAnswers": [
+          "Tiger",
+          "Shark"
+        ],
+        "explanation": "Tigers and sharks are meat-eaters. Cows are herbivores, and pandas primarily eat bamboo (though they are technically omnivores).",
+        "_error": ""
+      },
+      {
+        "id": "1751524218146umj6ktxe0e",
+        "type": "multiple-answer",
+        "content": "Which of these animals are native to Africa?",
+        "options": [
+          "Giraffe",
+          "Kangaroo",
+          "Elephant",
+          "Sloth"
+        ],
+        "correctAnswers": [
+          "Giraffe",
+          "Elephant"
+        ],
+        "explanation": "Giraffes and elephants are native to Africa. Kangaroos are from Australia, and sloths are native to Central and South America.",
+        "_error": ""
+      },
+      {
+        "id": "17515242402103aez496mfue",
+        "type": "multiple-answer",
+        "content": "Which animals undergo metamorphosis?",
+        "options": [
+          "Frog",
+          "Butterfly",
+          "Snake",
+          "Ant"
+        ],
+        "correctAnswers": [
+          "Frog",
+          "Butterfly",
+          "Ant"
+        ],
+        "explanation": " Frogs (tadpole to frog), butterflies (caterpillar to butterfly), and ants (larva to adult) all undergo metamorphosis. Snakes do not.",
+        "_error": ""
+      },
+      {
+        "id": "1751524267331v30spzh7ye",
+        "type": "multiple-answer",
+        "content": "Which of these animals lay eggs?",
+        "options": [
+          "Platypus",
+          "Dog",
+          "Chicken",
+          "Dolphin"
+        ],
+        "correctAnswers": [
+          "Platypus",
+          "Chicken"
+        ],
+        "explanation": " Chickens and platypuses lay eggs. Dogs and dolphins give live birth.",
+        "_error": ""
+      },
+      {
+        "id": "1751524295651upsoodejhf",
+        "type": "multiple-answer",
+        "content": "Which animals are known to use tools in the wild?",
+        "options": [
+          "Chimpanzee",
+          "Dolphin",
+          "Octopus",
+          "Horse"
+        ],
+        "correctAnswers": [
+          "Chimpanzee",
+          "Dolphin",
+          "Octopus"
+        ],
+        "explanation": " Chimpanzees use sticks to get insects, dolphins use sponges to protect their snouts, and octopuses use coconut shells or rocks. Horses don’t use tools.",
+        "_error": ""
+      },
+      {
+        "id": "1751524332649elbmpgc4kif",
+        "type": "multiple-answer",
+        "content": "Which of these animals are amphibians?",
+        "options": [
+          "Frog",
+          "Salamander",
+          "Lizard",
+          "Toad"
+        ],
+        "correctAnswers": [
+          "Frog",
+          "Salamander",
+          "Toad"
+        ],
+        "explanation": "Frogs, salamanders, and toads are amphibians. Lizards are reptiles",
+        "_error": ""
+      },
+      {
+        "id": "1751524373375s1p5d6m9ymd",
+        "type": "multiple-answer",
+        "content": "Which of these animals are cold-blooded?",
+        "options": [
+          "Snake",
+          "Crocodile",
+          "Whale",
+          "Turtle"
+        ],
+        "correctAnswers": [
+          "Snake",
+          "Crocodile",
+          "Turtle"
+        ],
+        "explanation": "Reptiles like snakes, crocodiles, and turtles are cold-blooded. Whales are warm-blooded mammals.",
+        "_error": ""
+      },
+      {
+        "id": "1751524402098o9wrcuq161o",
+        "type": "multiple-answer",
+        "content": "Which animals are known for their ability to mimic sounds or speech?",
+        "options": [
+          "Parrot",
+          "Elephant",
+          "Dolphin",
+          "Crow"
+        ],
+        "correctAnswers": [
+          "Parrot",
+          "Elephant",
+          "Crow"
+        ],
+        "explanation": "Parrots are famous mimics. Some elephants and crows can also imitate human sounds. Dolphins communicate but don’t mimic speech the same way.",
+        "_error": ""
+      }
+    ],
+    "description": "Think you know animals? Test your knowledge of creatures great and small with this 10-question quiz. Each question may have more than one correct answer, so choose wisely!",
+    "published": true,
+    "title": "Wild & Wonderful: Animal Knowledge Challenge",
+    "tags": []
+  }
+]
