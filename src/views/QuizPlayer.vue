@@ -1,5 +1,5 @@
 <template>
-  <div class="max-w-3xl mx-auto p-8">
+  <div class="max-w-6xl mx-auto p-8">
     <div class="mb-8">
       <UserResults v-if="user" :user-id="user.id" />
     </div>

@@ -1,6 +1,6 @@
 <template>
   <div
-    class="max-w-md mx-auto p-8 bg-white/90 dark:bg-gray-800/90 rounded-2xl shadow-xl mt-16 text-center border border-gray-200 dark:border-gray-700"
+    class="max-w-4xl mx-auto p-8 bg-white/90 dark:bg-gray-800/90 rounded-2xl shadow-xl mt-16 text-center border border-gray-200 dark:border-gray-700"
   >
     <h2 class="text-2xl font-extrabold mb-6 text-green-700 dark:text-green-300">
       Email Verification

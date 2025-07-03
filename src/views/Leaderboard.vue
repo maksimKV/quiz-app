@@ -1,6 +1,6 @@
 <template>
   <div
-    class="max-w-2xl mx-auto p-8 bg-white dark:bg-gray-800 rounded-2xl shadow-xl mt-12 border border-gray-200 dark:border-gray-700"
+    class="max-w-4xl mx-auto p-8 bg-white dark:bg-gray-800 rounded-2xl shadow-xl mt-12 border border-gray-200 dark:border-gray-700"
   >
     <h1 class="text-3xl font-extrabold mb-8 text-center text-yellow-700 dark:text-yellow-300">
       Leaderboard
