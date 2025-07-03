@@ -294,6 +294,7 @@ watch(
     currentIndex.value = 0
     answers.value = {}
     showReview.value = false
+    ensureAnswerArray()
     if (timerEnabled.value) {
       resetTimer()
       startTimer()
@@ -329,13 +330,28 @@ function scoreClass(score: number, q: Question) {
   return ''
 }
 
+function ensureAnswerArray() {
+  if (
+    currentQuestion.value.type === 'multiple-answer' &&
+    !Array.isArray(answers.value[currentQuestion.value.id])
+  ) {
+    answers.value[currentQuestion.value.id] = []
+  }
+}
+
 function next() {
-  if (currentIndex.value < currentQuiz.value.questions.length - 1) currentIndex.value++
+  if (currentIndex.value < currentQuiz.value.questions.length - 1) {
+    currentIndex.value++
+    ensureAnswerArray()
+  }
   focusFirstInput()
 }
 
 function prev() {
-  if (currentIndex.value > 0) currentIndex.value--
+  if (currentIndex.value > 0) {
+    currentIndex.value--
+    ensureAnswerArray()
+  }
   focusFirstInput()
 }
 
@@ -391,6 +407,7 @@ function restart() {
   currentIndex.value = 0
   answers.value = {}
   showReview.value = false
+  ensureAnswerArray()
   if (timerEnabled.value) {
     resetTimer()
     startTimer()
@@ -444,6 +461,15 @@ function isShortTextCorrect(q: Question) {
   const ans = typeof answers.value[q.id] === 'string' ? answers.value[q.id] : ''
   return calculateQuestionScore(q, ans) === 1
 }
+
+watch(currentQuestion, (newQ) => {
+  const ans = answers.value[newQ.id]
+  if (newQ.type === 'multiple-choice' && Array.isArray(ans)) {
+    answers.value[newQ.id] = ''
+  } else if (newQ.type === 'multiple-answer' && !Array.isArray(ans)) {
+    answers.value[newQ.id] = []
+  }
+})
 </script>
 
 <style scoped>
