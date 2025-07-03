@@ -255,6 +255,19 @@ const {
   if (!showReview.value) submit()
 })
 
+// Prevent back navigation and detect tab switching
+function preventBack() {
+  window.history.pushState(null, '', window.location.href);
+  alert('Back navigation is disabled during the quiz.');
+}
+
+function handleVisibilityChange() {
+  if (document.hidden) {
+    alert('Please do not switch tabs or minimize during the quiz!');
+    // You can add logic here to count offenses or auto-submit the quiz
+  }
+}
+
 onMounted(() => {
   // Subscribe to real-time quiz updates
   unsubscribeQuiz = quizService.subscribeToQuiz(props.quiz.id, updatedQuiz => {
@@ -266,11 +279,19 @@ onMounted(() => {
   if (timerEnabled.value) {
     startTimer()
   }
+
+  // Prevent back navigation
+  window.history.pushState(null, '', window.location.href);
+  window.addEventListener('popstate', preventBack);
+  // Detect tab switching
+  document.addEventListener('visibilitychange', handleVisibilityChange);
 })
 
 onBeforeUnmount(() => {
   stopTimer()
   if (unsubscribeQuiz) unsubscribeQuiz()
+  window.removeEventListener('popstate', preventBack);
+  document.removeEventListener('visibilitychange', handleVisibilityChange);
 })
 
 watch(
@@ -393,11 +414,12 @@ function selectRadio(opt: string) {
 }
 
 function toggleCheckbox(opt: string) {
-  const arr = answers.value[currentQuestion.value.id] || []
+  let arr = answers.value[currentQuestion.value.id];
+  if (!Array.isArray(arr)) arr = [];
   if (arr.includes(opt)) {
-    answers.value[currentQuestion.value.id] = arr.filter((o: string) => o !== opt)
+    answers.value[currentQuestion.value.id] = arr.filter((o: string) => o !== opt);
   } else {
-    answers.value[currentQuestion.value.id] = [...arr, opt]
+    answers.value[currentQuestion.value.id] = [...arr, opt];
   }
 }
 
